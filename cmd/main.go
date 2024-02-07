@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 
+	"github.com/SamnitPatil9882/foodOrderingSystem/app"
 	"github.com/SamnitPatil9882/foodOrderingSystem/repository"
+	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -17,6 +19,7 @@ func main() {
 		fmt.Println("error occured in creation of db")
 	}
 
-	// r := mux.NewRouter()
+	r := mux.NewRouter()
+	app.Routes(r, database)
 
 }
