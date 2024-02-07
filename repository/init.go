@@ -7,22 +7,25 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+var db *sql.DB
+
 func InitializeDatabase() (*sql.DB, error) {
 	database, err := sql.Open("sqlite3", "../foodOrderingDB.db")
 	if err != nil {
 		fmt.Println("error occured in creation of db" + err.Error())
 		return database, err
 	}
+	db = database
 
-	query := "CREATE TABLE IF NOT EXISTS category  (id INTEGER PRIMARY KEY,category_name VARCHAR(100) NOT NULL,description VARCHAR(255),is_active INTEGER DEFAULT 1)"
+	query := "CREATE TABLE IF NOT EXISTS category  (id INTEGER PRIMARY KEY AUTOINCREMENT,category_name VARCHAR(100) NOT NULL,description VARCHAR(255),is_active INTEGER DEFAULT 1)"
 	statement, err := database.Prepare(query)
 	if err != nil {
 		fmt.Println("error occured in creation of menu table: " + err.Error())
 		return database, err
 	}
 	statement.Exec()
-
-	query = "CREATE TABLE IF NOT EXISTS food  (id INTEGER PRIMARY KEY,category_id VARCHAR(100) NOT NULL,price INTEGER,name VARCHAR(100),is_veg INTEGER DEFAULT 1,FOREIGN KEY (category_id) REFERENCES category(id))"
+	seedCategoryData()
+	query = "CREATE TABLE IF NOT EXISTS food  (id INTEGER PRIMARY KEY AUTOINCREMENT,category_id VARCHAR(100) NOT NULL,price INTEGER,name VARCHAR(100),is_veg INTEGER DEFAULT 1,FOREIGN KEY (category_id) REFERENCES category(id))"
 	statement, err = database.Prepare(query)
 	if err != nil {
 		fmt.Println("error occured in creation of food table: " + err.Error())
@@ -63,4 +66,17 @@ func InitializeDatabase() (*sql.DB, error) {
 	statement.Exec()
 
 	return database, nil
+}
+
+func seedCategoryData() {
+	query := "INSERT INTO category (category_name,description,is_active) VALUES(?,?,?)"
+	statement, err := db.Prepare(query)
+	if err != nil {
+		fmt.Println("error in inserting: " + err.Error())
+		return
+	}
+	statement.Exec("maincourse", "abc", 1)
+	statement.Exec("starter", "abc", 0)
+	statement.Exec("softdrinks", "abc", 0)
+	statement.Exec("dessert", "abc", 1)
 }

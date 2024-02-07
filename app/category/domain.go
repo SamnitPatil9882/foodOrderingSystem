@@ -11,6 +11,6 @@ type CategoryStorer interface {
 type Category struct {
 	ID           int
 	CategoryName string
-	description  string
+	Description  string
 	IsAcive      bool
 }
