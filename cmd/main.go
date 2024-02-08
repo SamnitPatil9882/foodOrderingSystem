@@ -2,10 +2,13 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 
-	"github.com/SamnitPatil9882/foodOrderingSystem/app"
-	"github.com/SamnitPatil9882/foodOrderingSystem/repository"
-	"github.com/gorilla/mux"
+	// "github.com/SamnitPatil9882/foodOrderingSystem/internal/app"
+	"github.com/SamnitPatil9882/foodOrderingSystem/internal/api"
+	"github.com/SamnitPatil9882/foodOrderingSystem/internal/app"
+	"github.com/SamnitPatil9882/foodOrderingSystem/internal/pkg/constants"
+	"github.com/SamnitPatil9882/foodOrderingSystem/internal/repository"
 )
 
 func main() {
@@ -19,7 +22,12 @@ func main() {
 		fmt.Println("error occured in creation of db")
 	}
 
-	r := mux.NewRouter()
-	app.Routes(r, database)
+	//intialize service dependencies
+	services := app.NewServices(database)
+
+	//intialize router
+	r := api.NewRouter(services)
+
+	http.ListenAndServe(fmt.Sprintf(":%d", constants.HTTPPort), r)
 
 }

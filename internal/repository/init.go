@@ -17,7 +17,7 @@ func InitializeDatabase() (*sql.DB, error) {
 	}
 	db = database
 
-	query := "CREATE TABLE IF NOT EXISTS category  (id INTEGER PRIMARY KEY AUTOINCREMENT,category_name VARCHAR(100) NOT NULL,description VARCHAR(255),is_active INTEGER DEFAULT 1)"
+	query := "CREATE TABLE IF NOT EXISTS category  (id INTEGER PRIMARY KEY AUTOINCREMENT,category_name VARCHAR(100) NOT NULL UNIQUE,description VARCHAR(255),is_active INTEGER DEFAULT 1)"
 	statement, err := database.Prepare(query)
 	if err != nil {
 		fmt.Println("error occured in creation of menu table: " + err.Error())
