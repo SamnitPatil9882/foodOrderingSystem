@@ -12,11 +12,11 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 	r := mux.NewRouter()
 	//category
 	r.HandleFunc("/categories", GetCategoriesHandler(deps.CategoryService)).Methods(http.MethodGet)
-	// r.HandleFunc("/menus/:menu_id", category.GetCategoryHandler).Methods(http.MethodGet)
-	// r.HandleFunc("/menus", category.CreateCategoryHandler).Methods(http.MethodPost)
-	// r.HandleFunc("/menus/:menu_id", category.UpdateCategoryHandler).Methods(http.MethodPatch)
+	r.HandleFunc("/categories/{category_id}", GetCategoryHandler(deps.CategoryService)).Methods(http.MethodGet)
+	r.HandleFunc("/category", CreateCategoryHandler(deps.CategoryService)).Methods(http.MethodPost)
+	r.HandleFunc("/category/{category_id}", UpdateCategoryHandler(deps.CategoryService)).Methods(http.MethodPatch)
 
-	//
+	//d
 
 	return r
 }
