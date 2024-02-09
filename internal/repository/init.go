@@ -17,7 +17,7 @@ func InitializeDatabase() (*sql.DB, error) {
 	}
 	db = database
 
-	query := "CREATE TABLE IF NOT EXISTS category  (id INTEGER PRIMARY KEY AUTOINCREMENT,category_name VARCHAR(100) NOT NULL UNIQUE,description VARCHAR(255),is_active INTEGER DEFAULT 1 NOT NULL)"
+	query := "CREATE TABLE IF NOT EXISTS category  (id INTEGER PRIMARY KEY AUTOINCREMENT,name VARCHAR(100) NOT NULL UNIQUE,description VARCHAR(255),is_active INTEGER DEFAULT 1 NOT NULL)"
 	statement, err := database.Prepare(query)
 	if err != nil {
 		fmt.Println("error occured in creation of menu table: " + err.Error())
@@ -32,7 +32,7 @@ func InitializeDatabase() (*sql.DB, error) {
 		return database, err
 	}
 	statement.Exec()
-
+	seedFoodData()
 	query = "CREATE TABLE IF NOT EXISTS user  (id INTEGER PRIMARY KEY AUTOINCREMENT,phone VARCHAR(15) UNIQUE NOT NULL,email VARCHAR(255) UNIQUE NOT NULL,password VARCHAR(255) NOT NULL,firstname VARCHAR(100) NOT NULL,lastname VARCHAR(100) NOT NULL,role VARCHAR(20) DEFAULT 'customer' CHECK(role IN ('customer','admin','deliveryboy')))"
 	statement, err = database.Prepare(query)
 	if err != nil {
@@ -76,7 +76,7 @@ func InitializeDatabase() (*sql.DB, error) {
 }
 
 func seedCategoryData() {
-	query := "INSERT INTO category (category_name,description,is_active) VALUES(?,?,?)"
+	query := "INSERT INTO category (name,description,is_active) VALUES(?,?,?)"
 	statement, err := db.Prepare(query)
 	if err != nil {
 		fmt.Println("error in inserting: " + err.Error())
@@ -86,4 +86,16 @@ func seedCategoryData() {
 	statement.Exec("starter", "abc", 0)
 	statement.Exec("softdrinks", "abc", 0)
 	statement.Exec("dessert", "abc", 1)
+}
+func seedFoodData() {
+	query := "INSERT INTO food (name,price,category_id,is_veg) VALUES(?,?,?,?)"
+	statement, err := db.Prepare(query)
+	if err != nil {
+		fmt.Println("error in inserting: " + err.Error())
+		return
+	}
+	statement.Exec("roti", 25, 1, 1)
+	statement.Exec("panner", 100, 4, 1)
+	statement.Exec("Biryani", 150, 2, 0)
+	statement.Exec("orange juice", 50, 4, 1)
 }
