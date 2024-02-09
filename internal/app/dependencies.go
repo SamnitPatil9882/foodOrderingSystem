@@ -4,7 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/app/category"
-	repository "github.com/SamnitPatil9882/foodOrderingSystem/internal/repository/boltdb"
+	repository "github.com/SamnitPatil9882/foodOrderingSystem/internal/repository/dbquery"
 )
 
 type Dependencies struct {

@@ -83,3 +83,12 @@ func UpdateCategoryHandler(categorySvc category.Service) func(w http.ResponseWri
 	}
 
 }
+
+// func UpdateCategoryStatusHandler(categorySvc category.Service)func(w http.ResponseWriter,r *http.Request){
+// 	return func(w http.ResponseWriter, r *http.Request){
+// 		ctx := r.Context()
+// 		category := dto.Category{}
+
+// 		response,err :=categorySvc.UpdateCategoryStatus(ctx,id,)
+// 	}
+// }

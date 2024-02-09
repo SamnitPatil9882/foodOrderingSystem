@@ -20,6 +20,7 @@ type Service interface {
 	GetCategory(ctx context.Context, categoryID int64) (dto.Category, error)
 	CreateCategory(ctx context.Context, createCategory dto.CategoryCreateRequest) (dto.Category, error)
 	UpdateCategory(ctx context.Context, updateCategory dto.Category) (dto.Category, error)
+	// UpdateCategoryStatus(ctx context.Context, categoryID int, updatedStatus int) (dto.Category, error)
 }
 
 func NewService(categoryRepo repository.CategoryStorer) Service {
@@ -78,3 +79,16 @@ func (cs *service) UpdateCategory(ctx context.Context, updateCategory dto.Catego
 
 	return categoryDB, nil
 }
+
+// func (cs *service) UpdateCategoryStatus(ctx context.Context, categoryID int, updatedStatus int) (dto.Category, error) {
+// 	categoryDB, err := cs.categoryRepo.UpdateCategoryStatus(ctx, int64(categoryID), updatedStatus)
+// 	ctgry := dto.Category{}
+
+// 	if err != nil {
+// 		fmt.Println("error occured in updating status: ", err.Error())
+// 		return ctgry, err
+// 	}
+
+// 	ctgry = MapRepoObjectToDto(categoryDB)
+// 	return ctgry, nil
+// }

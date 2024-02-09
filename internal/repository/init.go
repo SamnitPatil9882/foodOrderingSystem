@@ -17,7 +17,7 @@ func InitializeDatabase() (*sql.DB, error) {
 	}
 	db = database
 
-	query := "CREATE TABLE IF NOT EXISTS category  (id INTEGER PRIMARY KEY AUTOINCREMENT,category_name VARCHAR(100) NOT NULL UNIQUE,description VARCHAR(255),is_active INTEGER DEFAULT 1)"
+	query := "CREATE TABLE IF NOT EXISTS category  (id INTEGER PRIMARY KEY AUTOINCREMENT,category_name VARCHAR(100) NOT NULL UNIQUE,description VARCHAR(255),is_active INTEGER DEFAULT 1 NOT NULL)"
 	statement, err := database.Prepare(query)
 	if err != nil {
 		fmt.Println("error occured in creation of menu table: " + err.Error())
@@ -25,7 +25,7 @@ func InitializeDatabase() (*sql.DB, error) {
 	}
 	statement.Exec()
 	seedCategoryData()
-	query = "CREATE TABLE IF NOT EXISTS food  (id INTEGER PRIMARY KEY AUTOINCREMENT,category_id VARCHAR(100) NOT NULL,price INTEGER,name VARCHAR(100),is_veg INTEGER DEFAULT 1,FOREIGN KEY (category_id) REFERENCES category(id))"
+	query = "CREATE TABLE IF NOT EXISTS food  (id INTEGER PRIMARY KEY AUTOINCREMENT,category_id VARCHAR(100) NOT NULL,price INTEGER NOT NULL,name VARCHAR(100) NOT NULL UNIQUE,is_veg INTEGER NOT NULL DEFAULT 1,FOREIGN KEY (category_id) REFERENCES category(id))"
 	statement, err = database.Prepare(query)
 	if err != nil {
 		fmt.Println("error occured in creation of food table: " + err.Error())
@@ -33,7 +33,7 @@ func InitializeDatabase() (*sql.DB, error) {
 	}
 	statement.Exec()
 
-	query = "CREATE TABLE IF NOT EXISTS user  (id INTEGER PRIMARY KEY AUTOINCREMENT,phone VARCHAR(15) UNIQUE NOT NULL,email VARCHAR(255) UNIQUE NOT NULL,password VARCHAR(255) NOT NULL,firstname VARCHAR(100),lastname VARCHAR(100),role VARCHAR(20) DEFAULT 'customer' CHECK(role IN ('customer','admin')))"
+	query = "CREATE TABLE IF NOT EXISTS user  (id INTEGER PRIMARY KEY AUTOINCREMENT,phone VARCHAR(15) UNIQUE NOT NULL,email VARCHAR(255) UNIQUE NOT NULL,password VARCHAR(255) NOT NULL,firstname VARCHAR(100) NOT NULL,lastname VARCHAR(100) NOT NULL,role VARCHAR(20) DEFAULT 'customer' CHECK(role IN ('customer','admin','deliveryboy')))"
 	statement, err = database.Prepare(query)
 	if err != nil {
 		fmt.Println("error occured in creation of user table: " + err.Error())
@@ -49,7 +49,7 @@ func InitializeDatabase() (*sql.DB, error) {
 	}
 	statement.Exec()
 
-	query = "CREATE TABLE IF NOT EXISTS orderItem  (id INTEGER PRIMARY KEY AUTOINCREMENT,order_id INTEGER NOT NULL,food_id INTEGER NOT NULL,quantity INTEGER NOT NULL,FOREIGN KEY (order_id) REFERENCES \"order\"(id),FOREIGN KEY (food_id) REFERENCES food(id))"
+	query = "CREATE TABLE IF NOT EXISTS orderItem  (id INTEGER NOT NULL,order_id INTEGER NOT NULL,food_id INTEGER NOT NULL,quantity INTEGER NOT NULL,PRIMARY KEY (id,order_id),FOREIGN KEY (order_id) REFERENCES \"order\"(id),FOREIGN KEY (food_id) REFERENCES food(id))"
 	statement, err = database.Prepare(query)
 	if err != nil {
 		fmt.Println("error occured in creation of order item table: " + err.Error())
@@ -65,6 +65,13 @@ func InitializeDatabase() (*sql.DB, error) {
 	}
 	statement.Exec()
 
+	query = "CREATE TABLE IF NOT EXISTS delivery (id INTEGER PRIMARY KEY AUTOINCREMENT,order_id INTEGER NOT NULL,deliveryboy_id INTEGER NOT NULL,start_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,end_at TIMESTAMP ,status VARCHAR(50) NOT NULL DEFAULT 'preaparing' CHECK(status IN ('preparing','pickup','delivered')))"
+	statement, err = database.Prepare(query)
+	if err != nil {
+		fmt.Println("error occured in creation of delivery table: " + err.Error())
+		return database, err
+	}
+	statement.Exec()
 	return database, nil
 }
 

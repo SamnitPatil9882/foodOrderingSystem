@@ -110,6 +110,41 @@ func (cts *categoryStore) UpdateCategory(ctx context.Context, catgory dto.Catego
 
 }
 
+// func (cts *categoryStore) UpdateCategoryStatus(ctx context.Context, categoryID int64, UpdatedStatus int) (repository.Category, error) {
+// 	if categoryID > 0 {
+// 		categoryID = 1
+// 	}
+// 	category := repository.Category{}
+// 	query := fmt.Sprintf("UPDATE category SET is_active = %d WHERE id = %d ",UpdatedStatus,categoryID)
+// 	statement, err := cts.BaseRepsitory.DB.Prepare(query)
+// 	if err != nil {
+// 		fmt.Println("error occured in updating category db: " + err.Error())
+// 		return category, err
+// 	}
+// 	statement.Exec()
+
+// 	query = fmt.Sprintf("SELECT * FROM category WHERE id = %d",categoryID)
+// 	// statement, err = cts.BaseRepsitory.DB.Prepare(query)
+// 	// if err != nil {
+// 	// 	fmt.Println("error occured in updating category db: " + err.Error())
+// 	// 	return category, err
+// 	// }
+// 	// statement.Exec()
+
+// 	rows, err := cts.BaseRepsitory.DB.Query(query)
+// 	if err != nil {
+// 		fmt.Println("error occured in selecting category: " + err.Error())
+// 		return category, err
+// 	}
+// 	for rows.Next() {
+// 		// ctgry := repository.Category
+// 		rows.Scan(&category.ID, &category.CategoryName, &category.Description, &category.IsAcive)
+// 		fmt.Println(category)
+// 		// ctgryList = append(ctgryList, ctgry)
+// 	}
+// 	return category,nil
+// }
+
 /*
 package repository
 
