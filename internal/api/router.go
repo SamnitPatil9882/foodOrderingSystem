@@ -21,5 +21,11 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 	r.HandleFunc("/foods/{category_id}", GetFoodListByCategoryHandler(deps.FoodService)).Methods(http.MethodGet)
 	r.HandleFunc("/food", CreateFoodItemHandler(deps.FoodService)).Methods(http.MethodPost)
 	r.HandleFunc("/food", UpdateFoodItemHandler(deps.FoodService)).Methods(http.MethodPatch)
+
+	//user
+	r.HandleFunc("/user/signup", SignUpHandler(deps.UserService)).Methods(http.MethodPost)
+	r.HandleFunc("/user/login", LoginHandler(deps.UserService)).Methods(http.MethodPost)
+	r.HandleFunc("/users", GetUsersHandler(deps.UserService)).Methods(http.MethodGet)
+	r.HandleFunc("/user/{id}", GetUserHandler(deps.UserService)).Methods(http.MethodGet)
 	return r
 }
