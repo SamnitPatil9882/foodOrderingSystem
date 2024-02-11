@@ -30,3 +30,7 @@ type UserResponse struct {
 	Lastname  string `json:"lastname"`
 	Role      string `json:"role"`
 }
+type UserLoginResponse struct {
+	ID   int
+	Role string
+}

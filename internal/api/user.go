@@ -6,9 +6,12 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/app/user"
+	"github.com/SamnitPatil9882/foodOrderingSystem/internal/pkg/constants"
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/pkg/dto"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 )
 
@@ -23,13 +26,19 @@ func SignUpHandler(userSvc user.Service) func(w http.ResponseWriter, r *http.Req
 			log.Fatal(err)
 			w.Write([]byte(err.Error()))
 		}
-		err = userSvc.Signup(ctx, sgnUpReq)
+		resp, err := userSvc.Signup(ctx, sgnUpReq)
 		if err != nil {
 
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte(err.Error()))
 			return
 		}
+
+		token, err := GenerateJWT(resp)
+		if err != nil {
+			w.WriteHeader(http.StatusBadGateway)
+		}
+		w.Header().Set("Authorization", "Bearer"+token)
 		w.WriteHeader(http.StatusAccepted)
 	}
 }
@@ -39,19 +48,23 @@ func LoginHandler(userSvc user.Service) func(w http.ResponseWriter, r *http.Requ
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		loginReq := dto.UserLoginRequest{}
-
 		err := json.NewDecoder(r.Body).Decode(&loginReq)
 		if err != nil {
 			log.Fatal(err)
 			w.Write([]byte(err.Error()))
 		}
-		err = userSvc.Login(ctx, loginReq)
+		resp, err := userSvc.Login(ctx, loginReq)
 		if err != nil {
 
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte(err.Error()))
 			return
 		}
+		token, err := GenerateJWT(resp)
+		if err != nil {
+			w.WriteHeader(http.StatusBadGateway)
+		}
+		w.Header().Set("Authorization", "Bearer"+token)
 		w.WriteHeader(http.StatusAccepted)
 	}
 }
@@ -88,4 +101,27 @@ func GetUserHandler(userSvc user.Service) func(w http.ResponseWriter, r *http.Re
 		json.NewEncoder(w).Encode(respones)
 
 	}
+}
+
+func GenerateJWT(user dto.UserLoginResponse) (string, error) {
+	// Define the expiration time for the token
+	expirationTime := time.Now().Add(time.Hour * 1)
+
+	// Create claims
+	claims := jwt.MapClaims{
+		"userid": user.ID,
+		"role":   user.Role,
+		"exp":    expirationTime.Unix(),
+	}
+
+	// Create token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	// Sign the token with a secret key
+	tokenString, err := token.SignedString([]byte(constants.JWTKEY))
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
 }

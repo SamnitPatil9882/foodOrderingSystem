@@ -1,10 +1,10 @@
 package dto
 
 type Category struct {
-	ID           int    `json:"id"`
-	CategoryName string `json:"category_name"`
-	Description  string `json:"description"`
-	IsAcive      int    `json:"is_active"`
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	IsAcive     int    `json:"is_active"`
 }
 
 type CategoryList struct {
@@ -12,7 +12,7 @@ type CategoryList struct {
 }
 
 type CategoryCreateRequest struct {
-	CategoryName string `json:"category_name"`
-	Description  string `json:"description"`
-	IsAcive      int    `json:"is_active"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	IsAcive     int    `json:"is_active"`
 }

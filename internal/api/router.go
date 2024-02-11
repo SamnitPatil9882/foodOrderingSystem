@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/app"
+	"github.com/SamnitPatil9882/foodOrderingSystem/internal/middleware"
 	"github.com/gorilla/mux"
 )
 
@@ -27,5 +28,12 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 	r.HandleFunc("/user/login", LoginHandler(deps.UserService)).Methods(http.MethodPost)
 	r.HandleFunc("/users", GetUsersHandler(deps.UserService)).Methods(http.MethodGet)
 	r.HandleFunc("/user/{id}", GetUserHandler(deps.UserService)).Methods(http.MethodGet)
+
+	//orders
+	r.HandleFunc("/orderitem", AddOrderItemHandler(deps.OrderService)).Methods(http.MethodPost)
+	r.HandleFunc("/orderitem", GetOrderedItemsHandler(deps.OrderService)).Methods(http.MethodGet)
+	r.HandleFunc("/orderitem/remove/{id}", RemoveOrderedItemsHandler(deps.OrderService)).Methods(http.MethodPost)
+	r.HandleFunc("/order/checkout", CreateInvoiceHandler(deps.OrderService)).Methods(http.MethodPost)
+	r.Use(middleware.JWTMiddleware)
 	return r
 }

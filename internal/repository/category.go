@@ -16,8 +16,8 @@ type CategoryStorer interface {
 }
 
 type Category struct {
-	ID           int
-	CategoryName string
-	Description  string
-	IsAcive      int
+	ID          int
+	Name        string
+	Description string
+	IsAcive     int
 }

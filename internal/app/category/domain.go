@@ -7,9 +7,9 @@ import (
 
 func MapRepoObjectToDto(repoObj repository.Category) dto.Category {
 	return dto.Category{
-		ID:           repoObj.ID,
-		CategoryName: repoObj.CategoryName,
-		Description:  repoObj.Description,
-		IsAcive:      repoObj.IsAcive,
+		ID:          repoObj.ID,
+		Name:        repoObj.Name,
+		Description: repoObj.Description,
+		IsAcive:     repoObj.IsAcive,
 	}
 }

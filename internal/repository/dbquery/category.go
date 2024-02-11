@@ -30,10 +30,10 @@ func (cts *categoryStore) GetCategories(ctc context.Context) ([]repository.Categ
 		fmt.Println("error occured in selecting categories: " + err.Error())
 		return ctgryList, err
 	}
-
+	defer rows.Close()
 	for rows.Next() {
 		ctgry := repository.Category{}
-		rows.Scan(&ctgry.ID, &ctgry.CategoryName, &ctgry.Description, &ctgry.IsAcive)
+		rows.Scan(&ctgry.ID, &ctgry.Name, &ctgry.Description, &ctgry.IsAcive)
 		fmt.Println(ctgry)
 		ctgryList = append(ctgryList, ctgry)
 	}
@@ -44,10 +44,10 @@ func (cts *categoryStore) GetCategories(ctc context.Context) ([]repository.Categ
 func (cts *categoryStore) GetCategory(ctx context.Context, categoryID int64) (repository.Category, error) {
 
 	category := repository.Category{
-		ID:           0,
-		CategoryName: "",
-		Description:  "",
-		IsAcive:      0,
+		ID:          0,
+		Name:        "",
+		Description: "",
+		IsAcive:     0,
 	}
 	query := "SELECT * FROM category WHERE id = " + strconv.FormatInt(categoryID, 10)
 
@@ -56,14 +56,15 @@ func (cts *categoryStore) GetCategory(ctx context.Context, categoryID int64) (re
 		fmt.Println("error occured in selecting category: " + err.Error())
 		return category, err
 	}
+	defer rows.Close()
 	for rows.Next() {
 		// ctgry := repository.Category
-		rows.Scan(&category.ID, &category.CategoryName, &category.Description, &category.IsAcive)
+		rows.Scan(&category.ID, &category.Name, &category.Description, &category.IsAcive)
 		fmt.Println(category)
 		// ctgryList = append(ctgryList, ctgry)
 	}
 	fmt.Println("In db category", categoryID)
-	// row.Scan(&category.ID, &category.CategoryName, &category.Description, &category.IsAcive)
+	// row.Scan(&category.ID, &category.Name, &category.Description, &category.IsAcive)
 	fmt.Println(category)
 	return category, nil
 
@@ -71,14 +72,15 @@ func (cts *categoryStore) GetCategory(ctx context.Context, categoryID int64) (re
 
 func (cts *categoryStore) CreateCategory(ctx context.Context, category dto.CategoryCreateRequest) (repository.Category, error) {
 	ctgry := repository.Category{}
-	query := "INSERT INTO category (category_name,description,is_active) VALUES(?,?,?)"
+	query := "INSERT INTO category (name,description,is_active) VALUES(?,?,?)"
 
 	statement, err := cts.BaseRepsitory.DB.Prepare(query)
 	if err != nil {
 		fmt.Println("error occured in inseting values in db")
 		return ctgry, err
 	}
-	res, err := statement.Exec(category.CategoryName, category.Description, category.IsAcive)
+	defer statement.Close()
+	res, err := statement.Exec(category.Name, category.Description, category.IsAcive)
 	if err != nil {
 		return ctgry, err
 	}
@@ -88,7 +90,7 @@ func (cts *categoryStore) CreateCategory(ctx context.Context, category dto.Categ
 		return ctgry, err
 	}
 	ctgry.ID = int(categoryID)
-	ctgry.CategoryName = category.CategoryName
+	ctgry.Name = category.Name
 	ctgry.Description = category.Description
 	ctgry.IsAcive = category.IsAcive
 	return ctgry, nil
@@ -98,12 +100,13 @@ func (cts *categoryStore) CreateCategory(ctx context.Context, category dto.Categ
 func (cts *categoryStore) UpdateCategory(ctx context.Context, catgory dto.Category) (dto.Category, error) {
 
 	// ctgry := repository.Category{}
-	query := fmt.Sprintf("UPDATE category SET category_name = '%s', description = '%s', is_active = %d WHERE id = %d", catgory.CategoryName, catgory.Description, catgory.IsAcive, catgory.ID)
+	query := fmt.Sprintf("UPDATE category SET name = '%s', description = '%s', is_active = %d WHERE id = %d", catgory.Name, catgory.Description, catgory.IsAcive, catgory.ID)
 	statement, err := cts.BaseRepsitory.DB.Prepare(query)
 	if err != nil {
 		fmt.Println("error occured in updating category db: " + err.Error())
 		return catgory, err
 	}
+	defer statement.Close()
 	statement.Exec()
 
 	return catgory, nil
@@ -138,7 +141,7 @@ func (cts *categoryStore) UpdateCategory(ctx context.Context, catgory dto.Catego
 // 	}
 // 	for rows.Next() {
 // 		// ctgry := repository.Category
-// 		rows.Scan(&category.ID, &category.CategoryName, &category.Description, &category.IsAcive)
+// 		rows.Scan(&category.ID, &category.Name, &category.Description, &category.IsAcive)
 // 		fmt.Println(category)
 // 		// ctgryList = append(ctgryList, ctgry)
 // 	}
@@ -167,7 +170,7 @@ func GetCategory() ([]category.Category, error) {
 
 	for rows.Next() {
 		ctgry := category.Category{}
-		rows.Scan(&ctgry.ID, &ctgry.CategoryName, &ctgry.Description, &ctgry.IsAcive)
+		rows.Scan(&ctgry.ID, &ctgry.Name, &ctgry.Description, &ctgry.IsAcive)
 		fmt.Println(ctgry)
 		ctgryList = append(ctgryList, ctgry)
 	}

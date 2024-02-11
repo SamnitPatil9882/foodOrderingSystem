@@ -7,8 +7,8 @@ import (
 )
 
 type UserStorer interface {
-	Signup(ctx context.Context, user dto.UserSignUpRequest) error
-	Login(ctx context.Context, user dto.UserLoginRequest) error
+	Signup(ctx context.Context, user dto.UserSignUpRequest) (dto.UserLoginResponse, error)
+	Login(ctx context.Context, user dto.UserLoginRequest) (dto.UserLoginResponse, error)
 	GetUsers(ctx context.Context) ([]dto.UserResponse, error)
 	GetUser(ctx context.Context, userId int) (dto.UserResponse, error)
 }

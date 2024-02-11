@@ -11,8 +11,8 @@ import (
 )
 
 type Service interface {
-	Signup(ctx context.Context, user dto.UserSignUpRequest) error
-	Login(ctx context.Context, user dto.UserLoginRequest) error
+	Signup(ctx context.Context, user dto.UserSignUpRequest) (dto.UserLoginResponse, error)
+	Login(ctx context.Context, user dto.UserLoginRequest) (dto.UserLoginResponse, error)
 	GetUsers(ctx context.Context) ([]dto.UserResponse, error)
 	GetUser(ctx context.Context, userID int) (dto.UserResponse, error)
 }
@@ -25,28 +25,30 @@ func NewService(userRepo repository.UserStorer) Service {
 		userRepo: userRepo,
 	}
 }
-func (sgSrv *service) Signup(ctx context.Context, user dto.UserSignUpRequest) error {
+func (sgSrv *service) Signup(ctx context.Context, user dto.UserSignUpRequest) (dto.UserLoginResponse, error) {
 
 	valUser := validateUser(user)
 	if !valUser {
-		return errors.New("enter valid data")
+		return dto.UserLoginResponse{}, errors.New("enter valid data")
 	}
 	user.Password = HashPassword(user.Password)
-	err := sgSrv.userRepo.Signup(ctx, user)
-	return err
+	resp, err := sgSrv.userRepo.Signup(ctx, user)
+	return resp, err
 }
-func (sgSrv *service) Login(ctx context.Context, user dto.UserLoginRequest) error {
+func (sgSrv *service) Login(ctx context.Context, user dto.UserLoginRequest) (dto.UserLoginResponse, error) {
 
 	valEmailPassword := isValidEmail(user.Email) && isValidPassword(user.Password)
 	if !valEmailPassword {
-		return errors.New("enter valid email and password")
+		return dto.UserLoginResponse{}, errors.New("enter valid email and password")
 	}
 	// user.Password = HashPassword(user.Password)
-	err := sgSrv.userRepo.Login(ctx, user)
+	// userData := dto.UserLoginResponse{}
+	userData, err := sgSrv.userRepo.Login(ctx, user)
 	if err != nil {
-		return err
+		return dto.UserLoginResponse{}, err
 	}
-	return nil
+
+	return userData, err
 
 }
 func (sgSrv *service) GetUsers(ctx context.Context) ([]dto.UserResponse, error) {

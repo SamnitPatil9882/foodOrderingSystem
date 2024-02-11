@@ -16,10 +16,7 @@ type Service interface {
 	GetFoodListByCategory(ctx context.Context, categoryID int) ([]dto.Food, error)
 	CreateFoodItem(ctx context.Context, fd dto.FoodCreateRequest) (dto.Food, error)
 	UpdateFoodItem(ctx context.Context, fd dto.Food) (dto.Food, error)
-	// GetCategory(ctx context.Context, categoryID int64) (dto.Category, error)
-	// CreateCategory(ctx context.Context, createCategory dto.CategoryCreateRequest) (dto.Category, error)
-	// UpdateCategory(ctx context.Context, updateCategory dto.Category) (dto.Category, error)
-	// UpdateCategoryStatus(ctx context.Context, categoryID int, updatedStatus int) (dto.Category, error)
+	GetFoodByID(ctx context.Context, foodID int) (dto.Food, error)
 }
 
 func NewService(foodRepo repository.FoodStorer) Service {
@@ -72,6 +69,17 @@ func (fdSvc *service) UpdateFoodItem(ctx context.Context, fd dto.Food) (dto.Food
 
 	resFd := dto.Food{}
 	fdDB, err := fdSvc.foodRepo.UpdateFood(ctx, fd)
+	if err != nil {
+		fmt.Println("error occured in getting data from db in service : " + err.Error())
+		return resFd, err
+	}
+	resFd = MapRepoObjectToDto(fdDB)
+
+	return resFd, nil
+}
+func (fdSvc *service) GetFoodByID(ctx context.Context, foodID int) (dto.Food, error) {
+	resFd := dto.Food{}
+	fdDB, err := fdSvc.foodRepo.GetFoodByID(ctx, int64(foodID))
 	if err != nil {
 		fmt.Println("error occured in getting data from db in service : " + err.Error())
 		return resFd, err
