@@ -2,7 +2,8 @@ package category
 
 import (
 	"context"
-	"fmt"
+	"errors"
+	"log"
 
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/pkg/dto"
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/repository"
@@ -45,7 +46,9 @@ func (cs *service) GetCategories(ctx context.Context) ([]dto.Category, error) {
 
 func (cs *service) GetCategory(ctx context.Context, categroyID int64) (dto.Category, error) {
 	category := dto.Category{}
-
+	if categroyID <= 0 {
+		return category, errors.New("invalid category id")
+	}
 	categoryDB, err := cs.categoryRepo.GetCategory(ctx, categroyID)
 	if err != nil {
 		return category, err
@@ -58,10 +61,13 @@ func (cs *service) GetCategory(ctx context.Context, categroyID int64) (dto.Categ
 func (cs *service) CreateCategory(ctx context.Context, createCategory dto.CategoryCreateRequest) (dto.Category, error) {
 
 	category := dto.Category{}
-
+	valres := validate(&createCategory)
+	if !valres {
+		return category, errors.New("invalid request details")
+	}
 	categoryDB, err := cs.categoryRepo.CreateCategory(ctx, createCategory)
 	if err != nil {
-		fmt.Println("error occred in create category service: " + err.Error())
+		log.Println("error occred in create category service: " + err.Error())
 	}
 
 	category = MapRepoObjectToDto(categoryDB)
@@ -74,7 +80,8 @@ func (cs *service) UpdateCategory(ctx context.Context, updateCategory dto.Catego
 
 	categoryDB, err := cs.categoryRepo.UpdateCategory(ctx, updateCategory)
 	if err != nil {
-		fmt.Println("error occred in updating category service: " + err.Error())
+		log.Println("error occred in updating category service: " + err.Error())
+		return dto.Category{},err
 	}
 
 	return categoryDB, nil
@@ -85,7 +92,7 @@ func (cs *service) UpdateCategory(ctx context.Context, updateCategory dto.Catego
 // 	ctgry := dto.Category{}
 
 // 	if err != nil {
-// 		fmt.Println("error occured in updating status: ", err.Error())
+// 		log.Println("error occured in updating status: ", err.Error())
 // 		return ctgry, err
 // 	}
 
