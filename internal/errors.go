@@ -1,0 +1,27 @@
+package internal
+
+var (
+	InternalServerError   = "Internal server error"
+	InvalidCategoryName   = "Invalid category name"
+	InvalidCategoryID     = "Invalid id"
+	InvalidFoodName       = "Invalid food name"
+	InvalidFoodID         = "Invalid food id"
+	InvalidPrice          = "Invalid price"
+	InvalidQuantity       = "Invalid Quantity"
+	InvalidPaymentMethod  = "Invalid Payment Methods"
+	InvalidLocation       = "Invalid Location information"
+	InvalidUserID         = "Invalid User ID"
+	InvalidDeliveryStatus = "Invalid Delivery Stutus"
+	InvalidTimeFormat     = "Invalid Time format"
+	InvalidFirstName      = "Invalid First Name"
+	InvalidLastName       = "Invalid Last Name"
+	InvalidPhoneNumber    = "Invalid Phone number"
+	InvalidRole           = "Invalid Role"
+	InvalidEmail          = "Invalid Email"
+	InvalidPassword       = "Invalid Password"
+	EmptyCart             = "Cart is Empty"
+	Unauthorized          = "login again"
+	InvalidID             = "invalid id"
+	UnauthorizedAccess    = "Unauthorized access"
+	UserAvail             = "User is avail"
+)

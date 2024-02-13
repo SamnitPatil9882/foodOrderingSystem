@@ -15,6 +15,7 @@ type Service interface {
 	Login(ctx context.Context, user dto.UserLoginRequest) (dto.UserLoginResponse, error)
 	GetUsers(ctx context.Context) ([]dto.UserResponse, error)
 	GetUser(ctx context.Context, userID int) (dto.UserResponse, error)
+	UpdateUser(ctx context.Context, updateInfo dto.UpdateUserInfo, userID int) (dto.UserResponse, error)
 }
 type service struct {
 	userRepo repository.UserStorer
@@ -27,7 +28,7 @@ func NewService(userRepo repository.UserStorer) Service {
 }
 func (sgSrv *service) Signup(ctx context.Context, user dto.UserSignUpRequest) (dto.UserLoginResponse, error) {
 
-	valUser := validateUser(user)
+	valUser := validateUser(&user)
 	if !valUser {
 		return dto.UserLoginResponse{}, errors.New("enter valid data")
 	}
@@ -47,6 +48,7 @@ func (sgSrv *service) Login(ctx context.Context, user dto.UserLoginRequest) (dto
 	if err != nil {
 		return dto.UserLoginResponse{}, err
 	}
+	log.Printf("login service response: %v", userData)
 
 	return userData, err
 
@@ -60,12 +62,23 @@ func (sgSrv *service) GetUsers(ctx context.Context) ([]dto.UserResponse, error) 
 	return userList, nil
 }
 func (sgSrv *service) GetUser(ctx context.Context, userID int) (dto.UserResponse, error) {
-
+	if userID <= 0 {
+		return dto.UserResponse{}, errors.New("invalid user id")
+	}
 	user, err := sgSrv.userRepo.GetUser(ctx, userID)
 	if err != nil {
 		return user, err
 	}
 	return user, nil
+}
+func (sgSrv *service) UpdateUser(ctx context.Context, updateInfo dto.UpdateUserInfo, userID int) (dto.UserResponse, error) {
+	updateInfo.Password = HashPassword(updateInfo.Password)
+	userResp, err := sgSrv.userRepo.UpdateUser(ctx, updateInfo, userID)
+	if err != nil {
+		log.Println(err.Error())
+		return dto.UserResponse{}, err
+	}
+	return userResp, nil
 }
 func HashPassword(password string) string {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)

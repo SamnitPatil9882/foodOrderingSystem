@@ -2,7 +2,7 @@ package food
 
 import (
 	"context"
-	"fmt"
+	"log"
 
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/pkg/dto"
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/repository"
@@ -30,7 +30,8 @@ func (fdSvc *service) GetFoodList(ctx context.Context) ([]dto.Food, error) {
 
 	fdListDB, err := fdSvc.foodRepo.GetListOfOrder(ctx)
 	if err != nil {
-		fmt.Println("error occured in getting data from db in service : " + err.Error())
+		log.Println("error occured in getting data from food table in service : " + err.Error())
+		return fdList,err
 	}
 	for _, fd := range fdListDB {
 		fdList = append(fdList, MapRepoObjectToDto(fd))
@@ -44,7 +45,8 @@ func (fdSvc *service) GetFoodListByCategory(ctx context.Context, categoryID int)
 	fdListDB, err := fdSvc.foodRepo.GetFoodByCategory(ctx, categoryID)
 	// GetFoodByCategory(ctx context.Context,categoryID int) ([]Food, error)
 	if err != nil {
-		fmt.Println("error occured in getting data from db in service : " + err.Error())
+		log.Println("error occured in getting data from db in service : " + err.Error())
+		return fdList,err
 	}
 	for _, fd := range fdListDB {
 		fdList = append(fdList, MapRepoObjectToDto(fd))
@@ -57,7 +59,7 @@ func (fdSvc *service) CreateFoodItem(ctx context.Context, fd dto.FoodCreateReque
 	resFd := dto.Food{}
 	fdDB, err := fdSvc.foodRepo.CreateFood(ctx, fd)
 	if err != nil {
-		fmt.Println("error occured in getting data from db in service : " + err.Error())
+		log.Println("error occured in getting data from db in service : " + err.Error())
 		return resFd, err
 	}
 	resFd = MapRepoObjectToDto(fdDB)
@@ -70,7 +72,7 @@ func (fdSvc *service) UpdateFoodItem(ctx context.Context, fd dto.Food) (dto.Food
 	resFd := dto.Food{}
 	fdDB, err := fdSvc.foodRepo.UpdateFood(ctx, fd)
 	if err != nil {
-		fmt.Println("error occured in getting data from db in service : " + err.Error())
+		log.Println("error occured in getting data from db in service : " + err.Error())
 		return resFd, err
 	}
 	resFd = MapRepoObjectToDto(fdDB)
@@ -81,7 +83,7 @@ func (fdSvc *service) GetFoodByID(ctx context.Context, foodID int) (dto.Food, er
 	resFd := dto.Food{}
 	fdDB, err := fdSvc.foodRepo.GetFoodByID(ctx, int64(foodID))
 	if err != nil {
-		fmt.Println("error occured in getting data from db in service : " + err.Error())
+		log.Println("error occured in getting data from db in service : " + err.Error())
 		return resFd, err
 	}
 	resFd = MapRepoObjectToDto(fdDB)

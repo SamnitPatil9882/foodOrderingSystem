@@ -68,6 +68,7 @@ func (cs *service) CreateCategory(ctx context.Context, createCategory dto.Catego
 	categoryDB, err := cs.categoryRepo.CreateCategory(ctx, createCategory)
 	if err != nil {
 		log.Println("error occred in create category service: " + err.Error())
+		return dto.Category{}, err
 	}
 
 	category = MapRepoObjectToDto(categoryDB)
@@ -81,7 +82,7 @@ func (cs *service) UpdateCategory(ctx context.Context, updateCategory dto.Catego
 	categoryDB, err := cs.categoryRepo.UpdateCategory(ctx, updateCategory)
 	if err != nil {
 		log.Println("error occred in updating category service: " + err.Error())
-		return dto.Category{},err
+		return dto.Category{}, err
 	}
 
 	return categoryDB, nil

@@ -34,3 +34,10 @@ type UserLoginResponse struct {
 	ID   int
 	Role string
 }
+type UpdateUserInfo struct {
+	Phone     string `json:"phone"`
+	Email     string `json:"email"`
+	Firstname string `json:"firstname"`
+	Lastname  string `json:"lastname"`
+	Password  string `json:"password"`
+}

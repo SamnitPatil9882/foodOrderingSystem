@@ -16,6 +16,11 @@ func InitializeDatabase() (*sql.DB, error) {
 		return database, err
 	}
 	db = database
+	_, err = db.Exec("PRAGMA foreign_keys = ON;")
+	if err != nil {
+		fmt.Println("Error enabling foreign key constraints:", err)
+		return db, err
+	}
 
 	query := "CREATE TABLE IF NOT EXISTS category  (id INTEGER PRIMARY KEY AUTOINCREMENT,name VARCHAR(100) NOT NULL UNIQUE,description VARCHAR(255),is_active INTEGER DEFAULT 1 NOT NULL)"
 	statement, err := database.Prepare(query)
@@ -57,7 +62,7 @@ func InitializeDatabase() (*sql.DB, error) {
 	}
 	statement.Exec()
 
-	query = "CREATE TABLE IF NOT EXISTS invoice (id INTEGER PRIMARY KEY AUTOINCREMENT,order_id INTEGER NOT NULL,payment_method VARCHAR(100) NOT NULL,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,FOREIGN KEY (order_id) REFERENCES \"order\"(id))"
+	query = "CREATE TABLE IF NOT EXISTS invoice (id INTEGER PRIMARY KEY AUTOINCREMENT,order_id INTEGER NOT NULL,payment_method VARCHAR(100) NOT NULL DEFAULT 'creditcard' CHECK(payment_method IN ('creditcard','debitcard','visa','upi')),created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,FOREIGN KEY (order_id) REFERENCES \"order\"(id))"
 	statement, err = database.Prepare(query)
 	if err != nil {
 		fmt.Println("error occured in creation of  invoice table: " + err.Error())
@@ -65,7 +70,7 @@ func InitializeDatabase() (*sql.DB, error) {
 	}
 	statement.Exec()
 
-	query = "CREATE TABLE IF NOT EXISTS delivery (id INTEGER PRIMARY KEY AUTOINCREMENT,order_id INTEGER NOT NULL,deliveryboy_id INTEGER NOT NULL,start_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,end_at TIMESTAMP ,status VARCHAR(50) NOT NULL DEFAULT 'preaparing' CHECK(status IN ('preparing','pickup','delivered')))"
+	query = "CREATE TABLE IF NOT EXISTS delivery (id INTEGER PRIMARY KEY AUTOINCREMENT,order_id INTEGER NOT NULL,deliveryboy_id INTEGER ,start_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,end_at TIMESTAMP ,status VARCHAR(50) NOT NULL DEFAULT 'preaparing' CHECK(status IN ('preparing','pickup','delivered')),FOREIGN KEY (deliveryboy_id) REFERENCES user(id),FOREIGN KEY (order_id) REFERENCES `order`(id))"
 	statement, err = database.Prepare(query)
 	if err != nil {
 		fmt.Println("error occured in creation of delivery table: " + err.Error())
@@ -82,10 +87,12 @@ func seedCategoryData() {
 		fmt.Println("error in inserting: " + err.Error())
 		return
 	}
+	defer statement.Close()
 	statement.Exec("maincourse", "abc", 1)
 	statement.Exec("starter", "abc", 0)
 	statement.Exec("softdrinks", "abc", 0)
 	statement.Exec("dessert", "abc", 1)
+
 }
 func seedFoodData() {
 	query := "INSERT INTO food (name,price,category_id,is_veg,is_avail) VALUES(?,?,?,?,?)"
@@ -94,8 +101,10 @@ func seedFoodData() {
 		fmt.Println("error in inserting: " + err.Error())
 		return
 	}
+	defer statement.Close()
 	statement.Exec("roti", 25, 1, 1, 1)
 	statement.Exec("panner", 100, 4, 1, 1)
 	statement.Exec("Biryani", 150, 2, 0, 0)
 	statement.Exec("orange juice", 50, 4, 1, 1)
+
 }

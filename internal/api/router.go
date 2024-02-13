@@ -15,7 +15,7 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 	r.HandleFunc("/categories", GetCategoriesHandler(deps.CategoryService)).Methods(http.MethodGet)
 	r.HandleFunc("/categories/{category_id}", GetCategoryHandler(deps.CategoryService)).Methods(http.MethodGet)
 	r.HandleFunc("/category", CreateCategoryHandler(deps.CategoryService)).Methods(http.MethodPost)
-	r.HandleFunc("/category/{category_id}", UpdateCategoryHandler(deps.CategoryService)).Methods(http.MethodPatch)
+	r.HandleFunc("/category", UpdateCategoryHandler(deps.CategoryService)).Methods(http.MethodPatch)
 
 	//food
 	r.HandleFunc("/foods", GetFoodListHandler(deps.FoodService)).Methods(http.MethodGet)
@@ -26,14 +26,25 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 	//user
 	r.HandleFunc("/user/signup", SignUpHandler(deps.UserService)).Methods(http.MethodPost)
 	r.HandleFunc("/user/login", LoginHandler(deps.UserService)).Methods(http.MethodPost)
-	r.HandleFunc("/users", GetUsersHandler(deps.UserService)).Methods(http.MethodGet)
+	r.Handle("/users", middleware.RequireAuth(GetUsersHandler(deps.UserService), []string{"admin"})).Methods(http.MethodGet)
+	// r.HandleFunc("/users", GetUsersHandler(deps.UserService)).Methods(http.MethodGet)
 	r.HandleFunc("/user/{id}", GetUserHandler(deps.UserService)).Methods(http.MethodGet)
+	r.HandleFunc("/user/update", UpdateUserHandler(deps.UserService)).Methods(http.MethodPut)
 
+	// router.Handle("/admin/signup", middleware.RequireAuth(createUserHandler(deps.UserService), []string{"super_admin", "admin"})).Methods("POST")
 	//orders
 	r.HandleFunc("/orderitem", AddOrderItemHandler(deps.OrderService)).Methods(http.MethodPost)
 	r.HandleFunc("/orderitem", GetOrderedItemsHandler(deps.OrderService)).Methods(http.MethodGet)
 	r.HandleFunc("/orderitem/remove/{id}", RemoveOrderedItemsHandler(deps.OrderService)).Methods(http.MethodPost)
 	r.HandleFunc("/order/checkout", CreateInvoiceHandler(deps.OrderService)).Methods(http.MethodPost)
-	r.Use(middleware.JWTMiddleware)
+	r.HandleFunc("/order/delivery", UpdateDeliveryHandler(deps.OrderService)).Methods(http.MethodPut)
+
+	r.HandleFunc("/order/delivery", GetDeliveryListHandler(deps.OrderService)).Methods(http.MethodGet)
+	r.HandleFunc("/orders", GetListOfOrderHandler(deps.OrderService)).Methods(http.MethodGet)                  // c
+	r.HandleFunc("/orders/{id}", GetOrderByIDHandler(deps.OrderService)).Methods(http.MethodGet)               // c
+	r.HandleFunc("/order/invoice/{id}", GetInvoiceOrderByIDHandler(deps.OrderService)).Methods(http.MethodGet) //
+	r.HandleFunc("/order/orderitem/{id}", GetOrderItemsByOrderIDHandler(deps.OrderService)).Methods(http.MethodGet)
+
+	// r.Use(middleware.JWTMiddleware)
 	return r
 }

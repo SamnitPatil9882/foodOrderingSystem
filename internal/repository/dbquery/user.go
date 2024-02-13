@@ -3,8 +3,11 @@ package dbquery
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"log"
 
+	"github.com/SamnitPatil9882/foodOrderingSystem/internal"
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/pkg/dto"
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/repository"
 	"golang.org/x/crypto/bcrypt"
@@ -33,12 +36,12 @@ func (us *UserStore) Signup(ctx context.Context, user dto.UserSignUpRequest) (dt
 	res, err := statement.Exec(user.Phone, user.Email, user.Password, user.Firstname, user.Lastname, user.Role)
 	if err != nil {
 		fmt.Println("error occured in executing insert query: " + err.Error())
-		return dto.UserLoginResponse{}, err
+		return dto.UserLoginResponse{}, errors.New(internal.InternalServerError)
 	}
 	id, err := res.LastInsertId()
 	if err != nil {
 		fmt.Println("error in executing: " + err.Error())
-		return dto.UserLoginResponse{}, err
+		return dto.UserLoginResponse{}, errors.New(internal.UserAvail)
 	}
 	resp := dto.UserLoginResponse{ID: int(id), Role: user.Role}
 	return resp, nil
@@ -56,7 +59,10 @@ func (us *UserStore) Login(ctx context.Context, user dto.UserLoginRequest) (dto.
 	var password string
 	for rows.Next() {
 		// food := repository.Food{}
-		rows.Scan(&password, &response.ID, &response.Role)
+		err := rows.Scan(&password, &response.ID, &response.Role)
+		if err != nil {
+			return dto.UserLoginResponse{}, err
+		}
 		// foodList = append(foodList, food)
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(password), []byte(user.Password))
@@ -81,7 +87,10 @@ func (us *UserStore) GetUsers(ctx context.Context) ([]dto.UserResponse, error) {
 	defer rows.Close()
 	for rows.Next() {
 		user := dto.UserResponse{}
-		rows.Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Email, &user.Phone, &user.Role)
+		err := rows.Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Email, &user.Phone, &user.Role)
+		if err != nil {
+			return []dto.UserResponse{}, err
+		}
 		usersList = append(usersList, user)
 	}
 	return usersList, nil
@@ -98,9 +107,46 @@ func (us *UserStore) GetUser(ctx context.Context, userId int) (dto.UserResponse,
 	defer rows.Close()
 	for rows.Next() {
 		err = rows.Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Email, &user.Phone, &user.Role)
-		if err != nil {
-			return user, err
-		}
+		return user, err
 	}
-	return user, nil
+	return user, errors.New("userid not found")
+}
+func (us *UserStore) UpdateUser(ctx context.Context, updateInfo dto.UpdateUserInfo, userID int) (dto.UserResponse, error) {
+	log.Printf("%d   %s", userID, updateInfo.Email)
+
+	// Prepare the SQL statement with placeholders
+	query := `UPDATE user
+	SET phone = ?, email = ?, password = ?, firstname = ?, lastname = ?
+	WHERE id = ?`
+
+	// Prepare the statement
+	statement, err := us.BaseRepsitory.DB.PrepareContext(ctx, query)
+	if err != nil {
+		log.Println(err.Error())
+		return dto.UserResponse{}, errors.New(internal.InternalServerError)
+	}
+	defer statement.Close()
+
+	// Execute the statement with the actual values
+	res, err := statement.ExecContext(ctx, updateInfo.Phone, updateInfo.Email, updateInfo.Password, updateInfo.Firstname, updateInfo.Lastname, userID)
+	if err != nil {
+		log.Println(err.Error())
+		return dto.UserResponse{}, errors.New(internal.InternalServerError)
+	}
+
+	noOfrowAffected, err := res.RowsAffected()
+	if err != nil {
+		log.Println(err.Error())
+		return dto.UserResponse{}, errors.New(internal.InternalServerError)
+	}
+	if noOfrowAffected == 0 {
+		log.Println("No rows affected")
+		return dto.UserResponse{}, errors.New(internal.InternalServerError)
+	}
+	userInfo, err := us.GetUser(ctx, userID)
+	if err != nil {
+		log.Println(err.Error())
+		return dto.UserResponse{}, errors.New(internal.InternalServerError)
+	}
+	return userInfo, nil
 }

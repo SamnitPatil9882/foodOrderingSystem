@@ -3,7 +3,7 @@ package order
 import (
 	"context"
 	"errors"
-	"fmt"
+	"log"
 
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/app/food"
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/pkg/dto"
@@ -11,21 +11,33 @@ import (
 )
 
 type service struct {
-	Cart        []dto.CartItem
-	foodService food.Service
-	invoiceRepo repository.InvoiceStorer
+	Cart         []dto.CartItem
+	foodService  food.Service
+	invoiceRepo  repository.InvoiceStorer
+	deliveryRepo repository.DeliveryStorer
+	orderRepo    repository.OrderStorer
 }
 type Service interface {
 	AddOrderItem(ctx context.Context, orderItemId int, quantity int) error
 	GetOrderList(ctx context.Context) []dto.CartItem
+
 	RemoveOrderItem(ctx context.Context, id int) ([]dto.CartItem, error)
 	CreateInvoice(ctx context.Context, invoiceInfo dto.InvoiceCreation) (dto.Invoice, error)
+	GetDeliveryList(ctx context.Context, userID int) ([]dto.Delivery, error)
+	UpdateDeliveryInfo(ctx context.Context, updateInfo dto.DeliveryUpdateRequst) error
+	GetListOfOrders(ctx context.Context, userID int, role string) ([]dto.Order, error)
+
+	GetOrderByID(ctx context.Context, orderID int, userID int, role string) (dto.Order, error)
+	GetInvoiceByOrderID(ctx context.Context, orderID int, userID int, role string) (dto.Invoice, error)
+	GetOrderItemsByOrderID(ctx context.Context, orderID int, role string, userID int) ([]dto.CartItem, error)
 }
 
-func NewService(orderSvc food.Service, invoiceRepo repository.InvoiceStorer) Service {
+func NewService(orderSvc food.Service, invoiceRepo repository.InvoiceStorer, deliveryRepo repository.DeliveryStorer, orderRepo repository.OrderStorer) Service {
 	return &service{
-		foodService: orderSvc,
-		invoiceRepo: invoiceRepo,
+		foodService:  orderSvc,
+		invoiceRepo:  invoiceRepo,
+		deliveryRepo: deliveryRepo,
+		orderRepo:    orderRepo,
 	}
 }
 func (ods *service) AddOrderItem(ctx context.Context, orderItemId int, quantity int) error {
@@ -42,7 +54,7 @@ func (ods *service) AddOrderItem(ctx context.Context, orderItemId int, quantity 
 
 	ods.Cart = append(ods.Cart, dto.CartItem{ID: orderItemId, Quantity: quantity, FoodName: fd.Name, Price: quantity * int(fd.Price)})
 
-	fmt.Println(ods.Cart)
+	log.Println(ods.Cart)
 	return nil
 }
 func (ods *service) GetOrderList(ctx context.Context) []dto.CartItem {
@@ -51,6 +63,9 @@ func (ods *service) GetOrderList(ctx context.Context) []dto.CartItem {
 }
 
 func (ods *service) RemoveOrderItem(ctx context.Context, id int) ([]dto.CartItem, error) {
+	if len(ods.Cart) == 0 {
+		return []dto.CartItem{}, errors.New("cart is empty")
+	}
 	flg := isIDPresent(ods.Cart, id, 1)
 	if !flg {
 		return ods.Cart, errors.New("bad request")
@@ -60,14 +75,45 @@ func (ods *service) RemoveOrderItem(ctx context.Context, id int) ([]dto.CartItem
 	return ods.Cart, err
 }
 func (ods *service) CreateInvoice(ctx context.Context, invoiceInfo dto.InvoiceCreation) (dto.Invoice, error) {
+	if len(ods.Cart) == 0 {
+		return dto.Invoice{}, errors.New("cart is empty")
+	}
 	invoiceInfo.CartItem = ods.Cart
-	res, err := ods.invoiceRepo.CreateInvoice(ctx, invoiceInfo)
 
+	log.Printf("cart items in service: %v", ods.Cart)
+	res, err := ods.invoiceRepo.CreateInvoice(ctx, invoiceInfo)
 	if err != nil {
 		return dto.Invoice{}, err
 	}
-
+	ods.Cart = ods.Cart[:0]
 	return res, nil
+}
+func (ods *service) GetDeliveryList(ctx context.Context, userID int) ([]dto.Delivery, error) {
+
+	dlvryList, err := ods.deliveryRepo.GetDeliveryList(ctx, userID)
+	if err != nil {
+		log.Println(err)
+		return []dto.Delivery{}, err
+	}
+	return dlvryList, nil
+}
+
+func (ods *service) UpdateDeliveryInfo(ctx context.Context, updateInfo dto.DeliveryUpdateRequst) error {
+
+	return ods.deliveryRepo.UpdateDeliveryInfo(ctx, updateInfo)
+}
+
+func (ods *service) GetListOfOrders(ctx context.Context, userID int, role string) ([]dto.Order, error) {
+	return ods.orderRepo.GetListOfOrder(ctx, userID, role)
+}
+func (ods *service) GetOrderByID(ctx context.Context, orderID int, userID int, role string) (dto.Order, error) {
+	return ods.orderRepo.GetOrderByID(ctx, orderID, userID, role)
+}
+func (ods *service) GetInvoiceByOrderID(ctx context.Context, orderID int, userID int, role string) (dto.Invoice, error) {
+	return ods.invoiceRepo.GetInvoiceByOrderID(ctx, orderID, userID, role)
+}
+func (ods *service) GetOrderItemsByOrderID(ctx context.Context, orderID int, role string, userID int) ([]dto.CartItem, error) {
+	return ods.orderRepo.GetOrderItemsByOrderID(ctx, orderID, role, userID)
 }
 func isIDPresent(cart []dto.CartItem, id int, quantity int) bool {
 	for idx := range cart {

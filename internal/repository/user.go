@@ -11,6 +11,7 @@ type UserStorer interface {
 	Login(ctx context.Context, user dto.UserLoginRequest) (dto.UserLoginResponse, error)
 	GetUsers(ctx context.Context) ([]dto.UserResponse, error)
 	GetUser(ctx context.Context, userId int) (dto.UserResponse, error)
+	UpdateUser(ctx context.Context,updateInfo dto.UpdateUserInfo,userID int)(dto.UserResponse,error)
 }
 type User struct {
 	ID        int

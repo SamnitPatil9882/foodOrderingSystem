@@ -3,7 +3,9 @@ package dbquery
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/pkg/dto"
@@ -27,14 +29,14 @@ func (cts *categoryStore) GetCategories(ctc context.Context) ([]repository.Categ
 
 	rows, err := cts.BaseRepsitory.DB.Query(query)
 	if err != nil {
-		fmt.Println("error occured in selecting categories: " + err.Error())
+		log.Println("error occured in selecting categories: " + err.Error())
 		return ctgryList, err
 	}
 	defer rows.Close()
 	for rows.Next() {
 		ctgry := repository.Category{}
 		rows.Scan(&ctgry.ID, &ctgry.Name, &ctgry.Description, &ctgry.IsAcive)
-		fmt.Println(ctgry)
+		log.Println(ctgry)
 		ctgryList = append(ctgryList, ctgry)
 	}
 	return ctgryList, nil
@@ -53,20 +55,21 @@ func (cts *categoryStore) GetCategory(ctx context.Context, categoryID int64) (re
 
 	rows, err := cts.BaseRepsitory.DB.Query(query)
 	if err != nil {
-		fmt.Println("error occured in selecting category: " + err.Error())
+		log.Println("error occured in selecting category: " + err.Error())
 		return category, err
 	}
 	defer rows.Close()
 	for rows.Next() {
 		// ctgry := repository.Category
 		rows.Scan(&category.ID, &category.Name, &category.Description, &category.IsAcive)
-		fmt.Println(category)
+		log.Println(category)
 		// ctgryList = append(ctgryList, ctgry)
+		return category, nil
 	}
-	fmt.Println("In db category", categoryID)
+	log.Println("In db category", categoryID)
 	// row.Scan(&category.ID, &category.Name, &category.Description, &category.IsAcive)
-	fmt.Println(category)
-	return category, nil
+	log.Println(category)
+	return category, errors.New("category not found")
 
 }
 
@@ -76,7 +79,7 @@ func (cts *categoryStore) CreateCategory(ctx context.Context, category dto.Categ
 
 	statement, err := cts.BaseRepsitory.DB.Prepare(query)
 	if err != nil {
-		fmt.Println("error occured in inseting values in db")
+		log.Println("error occured in inseting values in db")
 		return ctgry, err
 	}
 	defer statement.Close()
@@ -86,7 +89,7 @@ func (cts *categoryStore) CreateCategory(ctx context.Context, category dto.Categ
 	}
 	categoryID, err := res.LastInsertId()
 	if err != nil {
-		fmt.Println("erro occured in fetching inserted id")
+		log.Println("erro occured in fetching inserted id")
 		return ctgry, err
 	}
 	ctgry.ID = int(categoryID)
@@ -103,12 +106,23 @@ func (cts *categoryStore) UpdateCategory(ctx context.Context, catgory dto.Catego
 	query := fmt.Sprintf("UPDATE category SET name = '%s', description = '%s', is_active = %d WHERE id = %d", catgory.Name, catgory.Description, catgory.IsAcive, catgory.ID)
 	statement, err := cts.BaseRepsitory.DB.Prepare(query)
 	if err != nil {
-		fmt.Println("error occured in updating category db: " + err.Error())
+		log.Println("error occured in updating category db: " + err.Error())
 		return catgory, err
 	}
 	defer statement.Close()
-	statement.Exec()
+	res, err := statement.Exec()
+	if err != nil {
+		log.Println(err)
+		return catgory, err
+	}
 
+	noOfRawAffected, err := res.RowsAffected()
+	if err != nil {
+		return catgory, err
+	}
+	if noOfRawAffected == 0 {
+		return catgory, errors.New("id not matched")
+	}
 	return catgory, nil
 
 }
@@ -118,31 +132,31 @@ func (cts *categoryStore) UpdateCategory(ctx context.Context, catgory dto.Catego
 // 		categoryID = 1
 // 	}
 // 	category := repository.Category{}
-// 	query := fmt.Sprintf("UPDATE category SET is_active = %d WHERE id = %d ",UpdatedStatus,categoryID)
+// 	query := log.Sprintf("UPDATE category SET is_active = %d WHERE id = %d ",UpdatedStatus,categoryID)
 // 	statement, err := cts.BaseRepsitory.DB.Prepare(query)
 // 	if err != nil {
-// 		fmt.Println("error occured in updating category db: " + err.Error())
+// 		log.Println("error occured in updating category db: " + err.Error())
 // 		return category, err
 // 	}
 // 	statement.Exec()
 
-// 	query = fmt.Sprintf("SELECT * FROM category WHERE id = %d",categoryID)
+// 	query = log.Sprintf("SELECT * FROM category WHERE id = %d",categoryID)
 // 	// statement, err = cts.BaseRepsitory.DB.Prepare(query)
 // 	// if err != nil {
-// 	// 	fmt.Println("error occured in updating category db: " + err.Error())
+// 	// 	log.Println("error occured in updating category db: " + err.Error())
 // 	// 	return category, err
 // 	// }
 // 	// statement.Exec()
 
 // 	rows, err := cts.BaseRepsitory.DB.Query(query)
 // 	if err != nil {
-// 		fmt.Println("error occured in selecting category: " + err.Error())
+// 		log.Println("error occured in selecting category: " + err.Error())
 // 		return category, err
 // 	}
 // 	for rows.Next() {
 // 		// ctgry := repository.Category
 // 		rows.Scan(&category.ID, &category.Name, &category.Description, &category.IsAcive)
-// 		fmt.Println(category)
+// 		log.Println(category)
 // 		// ctgryList = append(ctgryList, ctgry)
 // 	}
 // 	return category,nil
@@ -152,7 +166,7 @@ func (cts *categoryStore) UpdateCategory(ctx context.Context, catgory dto.Catego
 package repository
 
 import (
-	"fmt"
+	"log"
 
 	// "github.com/SamnitPatil9882/foodOrderingSystem/app/category"
 )
@@ -164,14 +178,14 @@ func GetCategory() ([]category.Category, error) {
 
 	rows, err := db.Query(query)
 	if err != nil {
-		fmt.Println("error occured in selecting categories: " + err.Error())
+		log.Println("error occured in selecting categories: " + err.Error())
 		return nil, err
 	}
 
 	for rows.Next() {
 		ctgry := category.Category{}
 		rows.Scan(&ctgry.ID, &ctgry.Name, &ctgry.Description, &ctgry.IsAcive)
-		fmt.Println(ctgry)
+		log.Println(ctgry)
 		ctgryList = append(ctgryList, ctgry)
 	}
 	return ctgryList, nil

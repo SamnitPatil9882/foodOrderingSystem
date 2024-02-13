@@ -5,9 +5,11 @@ import (
 	"regexp"
 
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/pkg/dto"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
-func validateUser(user dto.UserSignUpRequest) bool {
+func validateUser(user *dto.UserSignUpRequest) bool {
 	if len(user.Firstname) < 2 {
 		return false
 	} else if len(user.Lastname) < 2 {
@@ -19,6 +21,8 @@ func validateUser(user dto.UserSignUpRequest) bool {
 	} else if !(isValidEmail(user.Email) && isValidPassword(user.Password)) {
 		return false
 	}
+	user.Lastname = cases.Title(language.Und, cases.NoLower).String(user.Lastname)
+	user.Firstname = cases.Title(language.Und, cases.NoLower).String(user.Firstname)
 	return true
 }
 

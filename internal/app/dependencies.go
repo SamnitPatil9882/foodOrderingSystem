@@ -24,11 +24,13 @@ func NewServices(db *sql.DB) Dependencies {
 	foodRepo := repository.NewFoodRepo(db)
 	userRepo := repository.NewUserRepo(db)
 	invoiceRepo := repository.NewInvoiceRepo(db)
+	deliveryRepo := repository.NewDeliveryRepo(db)
+	orderRepo := repository.NewOrderRepo(db)
 	//intialize service dependencies
 	categoryService := category.NewService(categoryRepo)
 	foodService := food.NewService(foodRepo)
 	userService := user.NewService(userRepo)
-	orderService := order.NewService(foodService, invoiceRepo)
+	orderService := order.NewService(foodService, invoiceRepo, deliveryRepo, orderRepo)
 	return Dependencies{
 		CategoryService: categoryService,
 		FoodService:     foodService,
