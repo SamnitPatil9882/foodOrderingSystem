@@ -34,6 +34,7 @@ type Service interface {
 
 func NewService(orderSvc food.Service, invoiceRepo repository.InvoiceStorer, deliveryRepo repository.DeliveryStorer, orderRepo repository.OrderStorer) Service {
 	return &service{
+		Cart:         make([]dto.CartItem, 0),
 		foodService:  orderSvc,
 		invoiceRepo:  invoiceRepo,
 		deliveryRepo: deliveryRepo,
@@ -58,7 +59,7 @@ func (ods *service) AddOrderItem(ctx context.Context, orderItemId int, quantity 
 	return nil
 }
 func (ods *service) GetOrderList(ctx context.Context) []dto.CartItem {
-
+	log.Println(ods.Cart)
 	return ods.Cart
 }
 

@@ -80,6 +80,7 @@ func InitializeDatabase() (*sql.DB, error) {
 	return database, nil
 }
 
+
 func seedCategoryData() {
 	query := "INSERT INTO category (name,description,is_active) VALUES(?,?,?)"
 	statement, err := db.Prepare(query)

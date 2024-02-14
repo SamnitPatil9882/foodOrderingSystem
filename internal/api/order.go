@@ -15,7 +15,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func AddOrderItemHandler(orderSvc order.Service) func(w http.ResponseWriter, r *http.Request) {
+func AddOrderItemHandler(orderSvc order.Service)  http.HandlerFunc  {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		req := dto.OrderItem{}
@@ -42,7 +42,7 @@ func AddOrderItemHandler(orderSvc order.Service) func(w http.ResponseWriter, r *
 		w.WriteHeader(http.StatusAccepted)
 	}
 }
-func GetOrderedItemsHandler(orderSvc order.Service) func(w http.ResponseWriter, r *http.Request) {
+func GetOrderedItemsHandler(orderSvc order.Service)  http.HandlerFunc  {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		resp := orderSvc.GetOrderList(ctx)
@@ -56,7 +56,7 @@ func GetOrderedItemsHandler(orderSvc order.Service) func(w http.ResponseWriter, 
 	}
 }
 
-func RemoveOrderedItemsHandler(orderSvc order.Service) func(w http.ResponseWriter, r *http.Request) {
+func RemoveOrderedItemsHandler(orderSvc order.Service)  http.HandlerFunc  {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		params := mux.Vars(r)
@@ -86,7 +86,7 @@ func RemoveOrderedItemsHandler(orderSvc order.Service) func(w http.ResponseWrite
 	}
 }
 
-func CreateInvoiceHandler(orderSvc order.Service) func(w http.ResponseWriter, r *http.Request) {
+func CreateInvoiceHandler(orderSvc order.Service)  http.HandlerFunc  {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
@@ -122,7 +122,7 @@ func CreateInvoiceHandler(orderSvc order.Service) func(w http.ResponseWriter, r 
 	}
 }
 
-func GetDeliveryListHandler(orderSvc order.Service) func(w http.ResponseWriter, r *http.Request) {
+func GetDeliveryListHandler(orderSvc order.Service)  http.HandlerFunc  {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		userID := getUserID(r)
@@ -163,7 +163,7 @@ func GetDeliveryListHandler(orderSvc order.Service) func(w http.ResponseWriter, 
 
 	}
 }
-func GetListOfOrderHandler(orderSvc order.Service) func(w http.ResponseWriter, r *http.Request) {
+func GetListOfOrderHandler(orderSvc order.Service)  http.HandlerFunc  {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
@@ -200,7 +200,7 @@ func GetListOfOrderHandler(orderSvc order.Service) func(w http.ResponseWriter, r
 		}
 	}
 }
-func GetOrderByIDHandler(orderSvc order.Service) func(w http.ResponseWriter, r *http.Request) {
+func GetOrderByIDHandler(orderSvc order.Service)  http.HandlerFunc  {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		params := mux.Vars(r)
@@ -245,7 +245,7 @@ func GetOrderByIDHandler(orderSvc order.Service) func(w http.ResponseWriter, r *
 	}
 }
 
-func GetInvoiceOrderByIDHandler(orderSvc order.Service) func(w http.ResponseWriter, r *http.Request) {
+func GetInvoiceOrderByIDHandler(orderSvc order.Service)  http.HandlerFunc  {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		params := mux.Vars(r)
@@ -289,7 +289,7 @@ func GetInvoiceOrderByIDHandler(orderSvc order.Service) func(w http.ResponseWrit
 		json.NewEncoder(w).Encode(resp)
 	}
 }
-func UpdateDeliveryHandler(orderSvc order.Service) func(w http.ResponseWriter, r *http.Request) {
+func UpdateDeliveryHandler(orderSvc order.Service)  http.HandlerFunc  {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		req := dto.DeliveryUpdateRequst{}
@@ -318,7 +318,7 @@ func UpdateDeliveryHandler(orderSvc order.Service) func(w http.ResponseWriter, r
 	}
 }
 
-func GetOrderItemsByOrderIDHandler(orderSvc order.Service) func(w http.ResponseWriter, r *http.Request) {
+func GetOrderItemsByOrderIDHandler(orderSvc order.Service)  http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		params := mux.Vars(r)

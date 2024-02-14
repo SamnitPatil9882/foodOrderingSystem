@@ -12,7 +12,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func GetFoodListHandler(foodSvc food.Service) func(w http.ResponseWriter, r *http.Request) {
+func GetFoodListHandler(foodSvc food.Service)  http.HandlerFunc  {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -23,11 +23,18 @@ func GetFoodListHandler(foodSvc food.Service) func(w http.ResponseWriter, r *htt
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}
-		json.NewEncoder(w).Encode(respones)
+		err=json.NewEncoder(w).Encode(respones)
+		if err != nil {
+			log.Println("Handler error: " + err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: internal.InternalServerError}
+			json.NewEncoder(w).Encode(errResp)
+			return
+		}
 	}
 }
 
-func GetFoodListByCategoryHandler(foodSvc food.Service) func(w http.ResponseWriter, r *http.Request) {
+func GetFoodListByCategoryHandler(foodSvc food.Service)  http.HandlerFunc  {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		var id int
@@ -49,21 +56,21 @@ func GetFoodListByCategoryHandler(foodSvc food.Service) func(w http.ResponseWrit
 		if err != nil {
 			log.Println("error occured in Getting food list in handler: " + err.Error())
 			// w.WriteHeader(http.StatusInternalServerError)
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		json.NewEncoder(w).Encode(respones)
 	}
 }
 
-func CreateFoodItemHandler(foodSvc food.Service) func(w http.ResponseWriter, r *http.Request) {
+func CreateFoodItemHandler(foodSvc food.Service)  http.HandlerFunc  {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		var req dto.FoodCreateRequest
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
-			http.Error(w, "enter valid data", http.StatusBadRequest)
+			http.Error(w, internal.InternalServerError, http.StatusInternalServerError)
 			return
 		}
 		err = validateFoodCreateReq(&req)
@@ -87,7 +94,7 @@ func CreateFoodItemHandler(foodSvc food.Service) func(w http.ResponseWriter, r *
 	}
 }
 
-func UpdateFoodItemHandler(foodSvc food.Service) func(w http.ResponseWriter, r *http.Request) {
+func UpdateFoodItemHandler(foodSvc food.Service)  http.HandlerFunc  {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()

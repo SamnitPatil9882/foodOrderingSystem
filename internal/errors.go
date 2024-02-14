@@ -24,4 +24,5 @@ var (
 	InvalidID             = "invalid id"
 	UnauthorizedAccess    = "Unauthorized access"
 	UserAvail             = "User is avail"
+	InvalidCredentials    = "eneter valid credentials"
 )

@@ -12,7 +12,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func GetCategoriesHandler(categorySvc category.Service) func(w http.ResponseWriter, r *http.Request) {
+func GetCategoriesHandler(categorySvc category.Service) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -26,13 +26,20 @@ func GetCategoriesHandler(categorySvc category.Service) func(w http.ResponseWrit
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}
-		json.NewEncoder(w).Encode(respone)
+		err=json.NewEncoder(w).Encode(respone)
+		if err != nil {
+			log.Println("Handler error: " + err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: internal.InternalServerError}
+			json.NewEncoder(w).Encode(errResp)
+			return
+		}
 		// w.WriteHeader(http.StatusOK)
 
 	}
 
 }
-func GetCategoryHandler(categorySvc category.Service) func(w http.ResponseWriter, r *http.Request) {
+func GetCategoryHandler(categorySvc category.Service) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -65,13 +72,20 @@ func GetCategoryHandler(categorySvc category.Service) func(w http.ResponseWriter
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}
-		json.NewEncoder(w).Encode(respone)
+		err=json.NewEncoder(w).Encode(respone)
+		if err != nil {
+			log.Println("Handler error: " + err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: internal.InternalServerError}
+			json.NewEncoder(w).Encode(errResp)
+			return
+		}
 		// w.WriteHeader(http.StatusOK)
 
 	}
 
 }
-func CreateCategoryHandler(categorySvc category.Service) func(w http.ResponseWriter, r *http.Request) {
+func CreateCategoryHandler(categorySvc category.Service) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -99,7 +113,7 @@ func CreateCategoryHandler(categorySvc category.Service) func(w http.ResponseWri
 	}
 
 }
-func UpdateCategoryHandler(categorySvc category.Service) func(w http.ResponseWriter, r *http.Request) {
+func UpdateCategoryHandler(categorySvc category.Service) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -109,7 +123,7 @@ func UpdateCategoryHandler(categorySvc category.Service) func(w http.ResponseWri
 		if err != nil {
 			log.Println("error in request")
 			w.WriteHeader(http.StatusBadRequest)
-			errResp := dto.ErrorResponse{Error: http.StatusBadRequest, Description: internal.InternalServerError}
+			errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: internal.InternalServerError}
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}

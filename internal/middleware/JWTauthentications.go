@@ -99,6 +99,9 @@ func RequireAuth(next http.Handler, roles []string) http.Handler {
 
 		tokenString := r.Header.Get("Authorization")
 		if tokenString == "" {
+			w.WriteHeader(http.StatusUnauthorized)
+			errResp := dto.ErrorResponse{Error: http.StatusUnauthorized, Description: internal.UnauthorizedAccess}
+			json.NewEncoder(w).Encode(errResp)
 			http.Error(w, "Unauthorized: Token missing", http.StatusUnauthorized)
 			return
 		}
@@ -110,6 +113,9 @@ func RequireAuth(next http.Handler, roles []string) http.Handler {
 			return []byte(constants.JWTKEY), nil
 		})
 		if err != nil || !token.Valid {
+			w.WriteHeader(http.StatusUnauthorized)
+			errResp := dto.ErrorResponse{Error: http.StatusUnauthorized, Description: internal.UnauthorizedAccess}
+			json.NewEncoder(w).Encode(errResp)
 			http.Error(w, "Unauthorized: Invalid token", http.StatusUnauthorized)
 			return
 		}
@@ -117,6 +123,9 @@ func RequireAuth(next http.Handler, roles []string) http.Handler {
 		// Extract user roles from JWT claims
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
+			w.WriteHeader(http.StatusUnauthorized)
+			errResp := dto.ErrorResponse{Error: http.StatusUnauthorized, Description: internal.UnauthorizedAccess}
+			json.NewEncoder(w).Encode(errResp)
 			http.Error(w, "Unauthorized: Invalid token claims", http.StatusUnauthorized)
 			return
 		}
@@ -127,11 +136,12 @@ func RequireAuth(next http.Handler, roles []string) http.Handler {
 		// 	Roles:    claims["role"],
 		// }
 		// userId:=claims["userid"].(float64)
-		
+
 		role := claims["role"].(string)
 
 		if !slices.Contains(roles, role) {
-			errResp := dto.ErrorResponse{Error: http.StatusUnauthorized, Description:internal.UnauthorizedAccess }
+			w.WriteHeader(http.StatusUnauthorized)
+			errResp := dto.ErrorResponse{Error: http.StatusUnauthorized, Description: internal.UnauthorizedAccess}
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}

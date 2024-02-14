@@ -19,5 +19,5 @@ type Category struct {
 	ID          int
 	Name        string
 	Description string
-	IsAcive     int
+	IsActive     int
 }

@@ -37,10 +37,10 @@ func validateCreateCategoryReq(createCategory *dto.CategoryCreateRequest) error 
 	}
 	createCategory.Name = cases.Title(language.Und, cases.NoLower).String(createCategory.Name)
 	createCategory.Description = cases.Title(language.Und, cases.NoLower).String(createCategory.Description)
-	if createCategory.IsAcive < 0 {
-		createCategory.IsAcive = 0
-	} else if createCategory.IsAcive > 1 {
-		createCategory.IsAcive = 1
+	if createCategory.IsActive < 0 {
+		createCategory.IsActive = 0
+	} else if createCategory.IsActive > 1 {
+		createCategory.IsActive = 1
 	}
 	return nil
 }
@@ -52,12 +52,12 @@ func validateUpdateCategoryReq(updateCategory *dto.Category) error {
 	}
 	updateCategory.Name = cases.Title(language.Und, cases.NoLower).String(updateCategory.Name)
 	updateCategory.Description = cases.Title(language.Und, cases.NoLower).String(updateCategory.Description)
-	if updateCategory.IsAcive < 0 {
-		updateCategory.IsAcive = 0
-	} else if updateCategory.IsAcive > 1 {
-		updateCategory.IsAcive = 1
-	} else if updateCategory.IsAcive != 0 && updateCategory.IsAcive != 1 {
-		updateCategory.IsAcive = 1
+	if updateCategory.IsActive < 0 {
+		updateCategory.IsActive = 0
+	} else if updateCategory.IsActive > 1 {
+		updateCategory.IsActive = 1
+	} else if updateCategory.IsActive != 0 && updateCategory.IsActive != 1 {
+		updateCategory.IsActive = 1
 	}
 	return nil
 }

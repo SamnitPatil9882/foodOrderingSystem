@@ -2,198 +2,340 @@ package food
 
 import (
 	"context"
+	"errors"
 	"reflect"
 	"testing"
 
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/pkg/dto"
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/repository"
+	"github.com/SamnitPatil9882/foodOrderingSystem/internal/repository/mocks"
+	"github.com/stretchr/testify/mock"
 )
 
-func TestNewService(t *testing.T) {
-	type args struct {
-		foodRepo repository.FoodStorer
-	}
-	tests := []struct {
-		name string
-		args args
-		want Service
-	}{
-		// TODO: Add test cases.
-		
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewService(tt.args.foodRepo); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewService() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func Test_service_GetFoodList(t *testing.T) {
-	type fields struct {
-		foodRepo repository.FoodStorer
-	}
-	type args struct {
-		ctx context.Context
-	}
+
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    []dto.Food
-		wantErr bool
+		name     string
+		wantFood []dto.Food
+		wantErr  bool
+		setup    func(foodRepo *mocks.FoodStorer)
 	}{
-		// TODO: Add test cases.
+		{
+			name: "successful",
+			wantFood: []dto.Food{
+				{
+					ID:         1,
+					CategoryID: 1,
+					Price:      100,
+					Name:       "Paneer",
+					IsVeg:      1,
+					IsAvail:    1,
+				},
+			},
+			wantErr: false,
+			setup: func(foodRepo *mocks.FoodStorer) {
+				foodRepo.On("GetListOfOrder", context.Background()).Return([]repository.Food{
+					{
+						ID:         1,
+						CategoryID: 1,
+						Price:      100,
+						Name:       "Paneer",
+						IsVeg:      1,
+						IsAvail:    1,
+					},
+				}, nil)
+			},
+		},
+		{
+			name:     "failure",
+			wantFood: []dto.Food{},
+			wantErr:  true,
+			setup: func(foodRepo *mocks.FoodStorer) {
+				foodRepo.On("GetListOfOrder", context.Background()).Return([]repository.Food{}, errors.New("errror occured"))
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fdSvc := &service{
-				foodRepo: tt.fields.foodRepo,
-			}
-			got, err := fdSvc.GetFoodList(tt.args.ctx)
+
+			fdRepo := &mocks.FoodStorer{}
+			tt.setup(fdRepo)
+			fdSrv := NewService(fdRepo)
+			got, err := fdSrv.GetFoodList(context.Background())
 			if (err != nil) != tt.wantErr {
 				t.Errorf("service.GetFoodList() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("service.GetFoodList() = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(got, tt.wantFood) {
+				t.Errorf("service.GetFoodList() = %v, want %v", got, tt.wantFood)
 			}
 		})
 	}
 }
 
 func Test_service_GetFoodListByCategory(t *testing.T) {
-	type fields struct {
-		foodRepo repository.FoodStorer
-	}
-	type args struct {
-		ctx        context.Context
-		categoryID int
-	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    []dto.Food
-		wantErr bool
+		name       string
+		categoryID int
+		wantFood   []dto.Food
+		wantErr    bool
+		setup      func(foodRepo *mocks.FoodStorer)
 	}{
-		// TODO: Add test cases.
+		{
+			name:       "successful",
+			categoryID: 1,
+			wantFood: []dto.Food{
+				{
+					ID:         1,
+					CategoryID: 1,
+					Price:      100,
+					Name:       "Paneer",
+					IsVeg:      1,
+					IsAvail:    1,
+				},
+			},
+			wantErr: false,
+			setup: func(foodRepo *mocks.FoodStorer) {
+				foodRepo.On("GetListOfOrder", context.Background()).Return([]repository.Food{
+					{
+						ID:         1,
+						CategoryID: 1,
+						Price:      100,
+						Name:       "Paneer",
+						IsVeg:      1,
+						IsAvail:    1,
+					},
+				}, nil)
+			},
+		},
+		{
+			name:       "failure",
+			categoryID: 10,
+			wantFood:   []dto.Food{},
+			wantErr:    true,
+			setup: func(foodRepo *mocks.FoodStorer) {
+				foodRepo.On("GetListOfOrder", context.Background()).Return([]repository.Food{}, errors.New("errror occured"))
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fdSvc := &service{
-				foodRepo: tt.fields.foodRepo,
-			}
-			got, err := fdSvc.GetFoodListByCategory(tt.args.ctx, tt.args.categoryID)
+
+			fdRepo := &mocks.FoodStorer{}
+			tt.setup(fdRepo)
+			fdSrv := NewService(fdRepo)
+			got, err := fdSrv.GetFoodList(context.Background())
 			if (err != nil) != tt.wantErr {
-				t.Errorf("service.GetFoodListByCategory() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("service.GetFoodList() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("service.GetFoodListByCategory() = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(got, tt.wantFood) {
+				t.Errorf("service.GetFoodList() = %v, want %v", got, tt.wantFood)
 			}
 		})
 	}
 }
 
 func Test_service_CreateFoodItem(t *testing.T) {
-	type fields struct {
-		foodRepo repository.FoodStorer
-	}
-	type args struct {
-		ctx context.Context
-		fd  dto.FoodCreateRequest
-	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    dto.Food
-		wantErr bool
+		name       string
+		createFood dto.FoodCreateRequest
+		wantFood   dto.Food
+		wantErr    bool
+		setup      func(foodRepo *mocks.FoodStorer)
 	}{
-		// TODO: Add test cases.
+		{
+			name: "successful",
+			createFood: dto.FoodCreateRequest{
+				CategoryID: 1,
+				Price:      100,
+				Name:       "Paneer",
+				IsVeg:      1,
+				IsAvail:    1,
+			},
+			wantFood: dto.Food{
+				ID:         1,
+				CategoryID: 1,
+				Price:      100,
+				Name:       "Paneer",
+				IsVeg:      1,
+				IsAvail:    1,
+			},
+			wantErr: false,
+			setup: func(foodRepo *mocks.FoodStorer) {
+				foodRepo.On("CreateFood", context.Background(), mock.Anything).Return(repository.Food{
+
+					ID:         1,
+					CategoryID: 1,
+					Price:      100,
+					Name:       "Paneer",
+					IsVeg:      1,
+					IsAvail:    1,
+				}, nil)
+			},
+		},
+		{
+
+			name: "failure",
+			createFood: dto.FoodCreateRequest{
+				CategoryID: 1,
+				Price:      100,
+				Name:       "Paneer",
+				IsVeg:      1,
+				IsAvail:    1,
+			},
+			wantFood: dto.Food{},
+			wantErr:  true,
+			setup: func(foodRepo *mocks.FoodStorer) {
+				foodRepo.On("CreateFood", context.Background(), mock.Anything).Return(repository.Food{}, errors.New("errror occured"))
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fdSvc := &service{
-				foodRepo: tt.fields.foodRepo,
-			}
-			got, err := fdSvc.CreateFoodItem(tt.args.ctx, tt.args.fd)
+
+			fdRepo := &mocks.FoodStorer{}
+			tt.setup(fdRepo)
+			fdSrv := NewService(fdRepo)
+			got, err := fdSrv.CreateFoodItem(context.Background(), tt.createFood)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("service.CreateFoodItem() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("service.GetFoodList() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("service.CreateFoodItem() = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(got, tt.wantFood) {
+				t.Errorf("service.GetFoodList() = %v, want %v", got, tt.wantFood)
 			}
 		})
 	}
 }
 
 func Test_service_UpdateFoodItem(t *testing.T) {
-	type fields struct {
-		foodRepo repository.FoodStorer
-	}
-	type args struct {
-		ctx context.Context
-		fd  dto.Food
-	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    dto.Food
-		wantErr bool
+		name       string
+		updateFood dto.Food
+		wantFood   dto.Food
+		wantErr    bool
+		setup      func(foodRepo *mocks.FoodStorer)
 	}{
-		// TODO: Add test cases.
+		{
+			name: "successful",
+			updateFood: dto.Food{
+				ID:         1,
+				CategoryID: 1,
+				Price:      100,
+				Name:       "Paneer",
+				IsVeg:      1,
+				IsAvail:    1,
+			},
+			wantFood: dto.Food{
+				ID:         1,
+				CategoryID: 1,
+				Price:      100,
+				Name:       "Paneer",
+				IsVeg:      1,
+				IsAvail:    1,
+			},
+			wantErr: false,
+			setup: func(foodRepo *mocks.FoodStorer) {
+				foodRepo.On("UpdateFood", context.Background(), mock.Anything).Return(repository.Food{
+					ID:         1,
+					CategoryID: 1,
+					Price:      100,
+					Name:       "Paneer",
+					IsVeg:      1,
+					IsAvail:    1,
+				}, nil)
+			},
+		},
+		{
+
+			name: "failure",
+			updateFood: dto.Food{
+				ID:         1,
+				CategoryID: 1,
+				Price:      100,
+				Name:       "Paneer",
+				IsVeg:      1,
+				IsAvail:    1,
+			},
+			wantFood: dto.Food{},
+			wantErr:  true,
+			setup: func(foodRepo *mocks.FoodStorer) {
+				foodRepo.On("UpdateFood", context.Background(), mock.Anything).Return(repository.Food{}, errors.New("errror occured"))
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fdSvc := &service{
-				foodRepo: tt.fields.foodRepo,
-			}
-			got, err := fdSvc.UpdateFoodItem(tt.args.ctx, tt.args.fd)
+
+			fdRepo := &mocks.FoodStorer{}
+			tt.setup(fdRepo)
+			fdSrv := NewService(fdRepo)
+			got, err := fdSrv.UpdateFoodItem(context.Background(), tt.updateFood)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("service.UpdateFoodItem() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("service.GetFoodList() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("service.UpdateFoodItem() = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(got, tt.wantFood) {
+				t.Errorf("service.GetFoodList() = %v, want %v", got, tt.wantFood)
 			}
 		})
 	}
 }
 
 func Test_service_GetFoodByID(t *testing.T) {
-	type fields struct {
-		foodRepo repository.FoodStorer
-	}
-	type args struct {
-		ctx    context.Context
-		foodID int
-	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    dto.Food
-		wantErr bool
+		name     string
+		ID       int
+		wantFood dto.Food
+		wantErr  bool
+		setup    func(foodRepo *mocks.FoodStorer)
 	}{
-		// TODO: Add test cases.
+		{
+			name: "successful",
+			wantFood: dto.Food{
+				ID:         1,
+				CategoryID: 1,
+				Price:      100,
+				Name:       "Paneer",
+				IsVeg:      1,
+				IsAvail:    1,
+			},
+			wantErr: false,
+			setup: func(foodRepo *mocks.FoodStorer) {
+				foodRepo.On("GetFoodByID", context.Background(), mock.Anything).Return(repository.Food{
+					ID:         1,
+					CategoryID: 1,
+					Price:      100,
+					Name:       "Paneer",
+					IsVeg:      1,
+					IsAvail:    1,
+				}, nil)
+			},
+		},
+		{
+
+			name: "failure",
+			wantFood: dto.Food{},
+			wantErr:  true,
+			setup: func(foodRepo *mocks.FoodStorer) {
+				foodRepo.On("GetFood", context.Background(), mock.Anything).Return(repository.Food{}, errors.New("errror occured"))
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fdSvc := &service{
-				foodRepo: tt.fields.foodRepo,
-			}
-			got, err := fdSvc.GetFoodByID(tt.args.ctx, tt.args.foodID)
+
+			fdRepo := &mocks.FoodStorer{}
+			tt.setup(fdRepo)
+			fdSrv := NewService(fdRepo)
+			got, err := fdSrv.GetFoodByID(context.Background(), tt.ID)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("service.GetFoodByID() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("service.GetFoodList() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("service.GetFoodByID() = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(got, tt.wantFood) {
+				t.Errorf("service.GetFoodList() = %v, want %v", got, tt.wantFood)
 			}
 		})
 	}

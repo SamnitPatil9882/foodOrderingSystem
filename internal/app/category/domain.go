@@ -12,7 +12,7 @@ func MapRepoObjectToDto(repoObj repository.Category) dto.Category {
 		ID:          repoObj.ID,
 		Name:        repoObj.Name,
 		Description: repoObj.Description,
-		IsAcive:     repoObj.IsAcive,
+		IsActive:     repoObj.IsActive,
 	}
 }
 
@@ -22,10 +22,10 @@ func validate(createCategory *dto.CategoryCreateRequest) bool {
 	}
 	createCategory.Name = cases.Title(language.Und, cases.NoLower).String(createCategory.Name)
 	createCategory.Description = cases.Title(language.Und, cases.NoLower).String(createCategory.Description)
-	if createCategory.IsAcive < 0 {
-		createCategory.IsAcive = 0
-	} else if createCategory.IsAcive > 1 {
-		createCategory.IsAcive = 1
+	if createCategory.IsActive < 0 {
+		createCategory.IsActive = 0
+	} else if createCategory.IsActive > 1 {
+		createCategory.IsActive = 1
 	}
 	return true
 }

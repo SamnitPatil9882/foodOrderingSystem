@@ -79,16 +79,16 @@ func LoginHandler(userSvc user.Service) func(w http.ResponseWriter, r *http.Requ
 		resp, err := userSvc.Login(ctx, loginReq)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: internal.InternalServerError}
+			errResp := dto.ErrorResponse{Error: http.StatusUnauthorized, Description: internal.InvalidCredentials}
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}
 		log.Printf("log in resp: %v", resp)
 		token, err := GenerateJWT(resp)
 		if err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
+			w.WriteHeader(http.StatusInternalServerError)
 
-			errResp := dto.ErrorResponse{Error: http.StatusUnauthorized, Description: internal.Unauthorized}
+			errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: internal.InternalServerError}
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}
@@ -143,7 +143,7 @@ func GetUserHandler(userSvc user.Service) http.HandlerFunc {
 	}
 }
 
-func UpdateUserHandler(userSvc user.Service) func(w http.ResponseWriter, r *http.Request) {
+func UpdateUserHandler(userSvc user.Service)  http.HandlerFunc  {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		userInfo := dto.UpdateUserInfo{}

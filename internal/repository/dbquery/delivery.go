@@ -84,6 +84,34 @@ func (dlvstr *DeliveryStore) UpdateDeliveryInfo(ctx context.Context, updateInfo 
 	if !flag {
 		return errors.New("enter user id of delivery boy")
 	}
+
+	// Check if the delivery status is transitioning to "pickup"
+	if updateInfo.Status == "pickup" {
+		// Fetch the current status of the delivery
+		currentStatus, err := dlvstr.getCurrentStatus(updateInfo.ID)
+		if err != nil {
+			return err
+		}
+
+		// If the current status is not "preparing", return an error
+		if currentStatus != "preparing" {
+			return errors.New("cannot transition to 'pickup' from current status")
+		}
+	}
+
+	// Check if the delivery status is transitioning to "delivered"
+	if updateInfo.Status == "delivered" {
+		// Fetch the current status of the delivery
+		currentStatus, err := dlvstr.getCurrentStatus(updateInfo.ID)
+		if err != nil {
+			return err
+		}
+
+		// If the current status is not "pickup", return an error
+		if currentStatus != "pickup" {
+			return errors.New("cannot transition to 'delivered' from current status")
+		}
+	}
 	query = "UPDATE delivery SET deliveryboy_id=?, end_at=?, status=? WHERE id=?"
 
 	statement, err := dlvstr.BaseRepsitory.DB.Prepare(query)
@@ -171,4 +199,15 @@ func (dlvstr *DeliveryStore) UpdateDeliveryInfo(ctx context.Context, updateInfo 
 			return err
 		}
 		return nil*/
+}
+
+func (dlvstr *DeliveryStore) getCurrentStatus(deliveryID int) (string, error) {
+	var currentStatus string
+	query := "SELECT status FROM delivery WHERE id = ?"
+	err := dlvstr.BaseRepsitory.DB.QueryRow(query, deliveryID).Scan(&currentStatus)
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
+	return currentStatus, nil
 }
