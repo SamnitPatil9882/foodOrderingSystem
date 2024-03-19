@@ -38,71 +38,72 @@ func (invst *InvoiceStore) CreateInvoice(ctx context.Context, invoiceInfo dto.In
 	query := "INSERT INTO `order` (user_id,created_at,total_amount,location) VALUES (?, ?, ?,?)"
 	statement, err := invst.BaseRepsitory.DB.Prepare(query)
 	if err != nil {
-		log.Printf("Error in prepareing for inserting cart item: %v", err)
+		log.Printf("Error preparing statement for inserting cart item: %v", err)
 		return dto.Invoice{}, err
 	}
 	defer statement.Close()
 	res, err := statement.Exec(invoiceInfo.UserID, createdAt, totalAmount, invoiceInfo.Location)
 	if err != nil {
 		log.Printf("Error inserting order: %v", err)
-		return invoice, err
+		return invoice, fmt.Errorf("failed to insert order: %w", err)
 	}
 
 	orderId, err := res.LastInsertId()
 	if err != nil {
 		log.Printf("Error getting orderId: %v", err)
-		return invoice, err
+		return invoice, fmt.Errorf("failed to get order ID: %w", err)
 	}
 
 	query = "INSERT INTO orderitem (id,order_id,food_id,quantity) VALUES (?,?,?,?)"
 	statement, err = invst.BaseRepsitory.DB.Prepare(query)
 	if err != nil {
-		log.Printf("Error in prepareing for inserting cart item: %v", err)
+		log.Printf("Error preparing statement for inserting cart item: %v", err)
 	}
 	defer statement.Close()
 	for ind, item := range invoiceInfo.CartItem {
 		log.Printf("orderid: %d", orderId)
 		_, err := statement.Exec(ind+1, orderId, item.ID, item.Quantity)
 		if err != nil {
-			log.Printf("Error inserting sp cart item: %v", err)
-			return invoice, err
+			log.Printf("Error inserting cart item: %v", err)
+			return invoice, fmt.Errorf("failed to insert cart item: %w", err)
 		}
 	}
 
 	query = "INSERT INTO invoice (order_id,payment_method,created_at) VALUES(?,?,?)"
 	statement, err = invst.BaseRepsitory.DB.Prepare(query)
 	if err != nil {
-		log.Printf("Error in prepareing for inserting invoice: %v", err)
+		log.Printf("Error preparing statement for inserting invoice: %v", err)
 		return dto.Invoice{}, err
 	}
 	res, err = statement.Exec(orderId, invoiceInfo.PaymentMethod, createdAt)
 	if err != nil {
 		log.Printf("Error inserting invoice: %v", err)
-		return invoice, err
+		return invoice, fmt.Errorf("failed to insert invoice: %w", err)
 	}
 	invoiceId, err := res.LastInsertId()
 	if err != nil {
 		log.Printf("Error getting invoiceID: %v", err)
-		return invoice, err
+		return invoice, fmt.Errorf("failed to get invoice ID: %w", err)
 	}
 	invoice.ID = int(invoiceId)
 	invoice.CreatedAt = createdAt
 	invoice.OrderID = int(orderId)
 	invoice.PaymentMethod = invoiceInfo.PaymentMethod
 
-	query = "INSERT INTO delivery (order_id,status) VALUES(?,?)"
+	query = "INSERT INTO delivery (order_id,start_at,status) VALUES(?,?,?)"
 	statement, err = invst.BaseRepsitory.DB.Prepare(query)
 	if err != nil {
-		log.Printf("Error in prepareing for inserting invoice: %v", err)
+		log.Printf("Error preparing statement for inserting delivery: %v", err)
 		return dto.Invoice{}, err
 	}
-	_, err = statement.Exec(orderId, "preparing")
+	_, err = statement.Exec(orderId, createdAt, "preparing")
 	if err != nil {
 		log.Printf("Error inserting delivery: %v", err)
-		return invoice, err
+		return invoice, fmt.Errorf("failed to insert delivery: %w", err)
 	}
 	return invoice, nil
 }
+
 func (invst *InvoiceStore) GetInvoiceByOrderID(ctx context.Context, orderId int, userId int, role string) (dto.Invoice, error) {
 	inv := dto.Invoice{}
 	var query string
@@ -123,12 +124,12 @@ func (invst *InvoiceStore) GetInvoiceByOrderID(ctx context.Context, orderId int,
 	rows, err := invst.BaseRepsitory.DB.Query(query)
 	if err != nil {
 		log.Println(err)
-		return inv, err
+		return inv, fmt.Errorf("failed to fetch invoice: %w", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
 		rows.Scan(&inv.ID, &inv.OrderID, &inv.PaymentMethod, &inv.CreatedAt)
 		return inv, nil
 	}
-	return inv, errors.New("order id not found")
+	return inv, errors.New("order ID not found")
 }

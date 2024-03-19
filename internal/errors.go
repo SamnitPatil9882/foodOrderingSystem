@@ -1,5 +1,11 @@
 package internal
 
+type CustomError string
+
+func (e CustomError) Error() string {
+	return string(e)
+}
+
 var (
 	InternalServerError   = "Internal server error"
 	InvalidCategoryName   = "Invalid category name"
@@ -25,4 +31,14 @@ var (
 	UnauthorizedAccess    = "Unauthorized access"
 	UserAvail             = "User is avail"
 	InvalidCredentials    = "eneter valid credentials"
+)
+
+
+const (
+    ErrCategoryNotFound   = CustomError("Category not found")
+    ErrFailedToFetchCategories = CustomError("Failed to fetch categories")
+    ErrFailedToFetchCategory = CustomError("Failed to fetch category")
+    ErrFailedToInsertCategory = CustomError("Failed to insert category")
+    ErrFailedToUpdateCategory = CustomError("Failed to update category")
+    ErrNoRowsAffected     = CustomError("No rows affected")
 )

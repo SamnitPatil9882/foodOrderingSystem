@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/pkg/dto"
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/repository"
@@ -39,7 +40,7 @@ func (dlvstr *DeliveryStore) GetDeliveryList(ctx context.Context, userID int) ([
 	rows, err := dlvstr.BaseRepsitory.DB.Query(query)
 	if err != nil {
 		log.Println(err)
-		return dlvList, err
+		return dlvList, errors.New("failed to fetch delivery list")
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -49,7 +50,7 @@ func (dlvstr *DeliveryStore) GetDeliveryList(ctx context.Context, userID int) ([
 		err := rows.Scan(&dlvry.ID, &dlvry.OrderID, &deliveryBoyID, &dlvry.StartTime, &endAt, &dlvry.Status)
 		if err != nil {
 			log.Println(err)
-			return dlvList, err
+			return dlvList, errors.New("failed to scan delivery row")
 		}
 		if deliveryBoyID.Valid {
 			dlvry.UserID = int(deliveryBoyID.Int64)
@@ -66,13 +67,14 @@ func (dlvstr *DeliveryStore) GetDeliveryList(ctx context.Context, userID int) ([
 	}
 	return dlvList, nil
 }
+
 func (dlvstr *DeliveryStore) UpdateDeliveryInfo(ctx context.Context, updateInfo dto.DeliveryUpdateRequst) error {
 	query := fmt.Sprintf("SELECT * FROM user WHERE id = %d AND role = '%s'", updateInfo.UserID, "deliveryboy")
 
 	rows, err := dlvstr.BaseRepsitory.DB.Query(query)
 	if err != nil {
 		log.Println(err)
-		return err
+		return errors.New("failed to query user information")
 	}
 	defer rows.Close()
 	flag := false
@@ -82,17 +84,17 @@ func (dlvstr *DeliveryStore) UpdateDeliveryInfo(ctx context.Context, updateInfo 
 		break
 	}
 	if !flag {
-		return errors.New("enter user id of delivery boy")
+		return errors.New("user ID does not belong to a delivery boy")
+	}
+
+	// Fetch the current status of the delivery
+	currentStatus, err := dlvstr.getCurrentStatus(updateInfo.ID)
+	if err != nil {
+		return errors.New("failed to fetch current delivery status")
 	}
 
 	// Check if the delivery status is transitioning to "pickup"
 	if updateInfo.Status == "pickup" {
-		// Fetch the current status of the delivery
-		currentStatus, err := dlvstr.getCurrentStatus(updateInfo.ID)
-		if err != nil {
-			return err
-		}
-
 		// If the current status is not "preparing", return an error
 		if currentStatus != "preparing" {
 			return errors.New("cannot transition to 'pickup' from current status")
@@ -101,104 +103,61 @@ func (dlvstr *DeliveryStore) UpdateDeliveryInfo(ctx context.Context, updateInfo 
 
 	// Check if the delivery status is transitioning to "delivered"
 	if updateInfo.Status == "delivered" {
-		// Fetch the current status of the delivery
-		currentStatus, err := dlvstr.getCurrentStatus(updateInfo.ID)
-		if err != nil {
-			return err
-		}
-
 		// If the current status is not "pickup", return an error
 		if currentStatus != "pickup" {
 			return errors.New("cannot transition to 'delivered' from current status")
 		}
-	}
-	query = "UPDATE delivery SET deliveryboy_id=?, end_at=?, status=? WHERE id=?"
 
-	statement, err := dlvstr.BaseRepsitory.DB.Prepare(query)
-	if err != nil {
-		log.Println("error occurred in updating delivery db: " + err.Error())
-		return err
-	}
-	defer statement.Close()
-
-	_, err = statement.Exec(updateInfo.UserID, updateInfo.EndTime, updateInfo.Status, updateInfo.ID)
-	if err != nil {
-		log.Println("error occurred in updating delivery db: " + err.Error())
-		return err
-	}
-	return nil
-	/*
-		query := fmt.Sprintf("SELECT * FROM user WHERE id = %d", updateInfo.UserID)
-		rows, err := dlvstr.BaseRepsitory.DB.Query(query)
-		if err != nil {
-			log.Println(err)
-			return err
-		}
-		defer rows.Close()
-		flag := false
-		for rows.Next() {
-			flag = true
-			break
-		}
-		if !flag {
-			return errors.New("enter user id of delivery boy")
-		}
-		if len(updateInfo.EndTime) != 0 {
-			query := fmt.Sprintf("SELECT start_at FROM delivery WHERE id = %d", updateInfo.ID)
-			rows, err := dlvstr.BaseRepsitory.DB.Query(query)
-			if err != nil {
-				log.Println(err)
-				return err
-			}
-			defer rows.Close()
-			var startAt string
-			for rows.Next() {
-				err := rows.Scan(&startAt)
-				if err != nil {
-					log.Println(err)
-					break
-				}
-			}
-
-			endAt := updateInfo.EndTime
-			log.Printf("start at: %s  ; end at : %s", startAt, endAt)
-			layout := "2006-01-02 15:04:05"
-			starttime, err := time.Parse(layout, startAt)
-			if err != nil {
-				log.Println("Error parsing start time:", err)
-			}
-			endtime, err := time.Parse(layout, endAt)
-			if err != nil {
-				log.Println("Error parsing end time:", err)
-				return errors.New("enter valid end time")
-			}
-
-			if endtime.After(starttime) {
-				log.Println("End time is greater than start time")
-			} else if endtime.Before(starttime) {
-				log.Println("End time is less than start time")
-				return errors.New("end time is less than start time")
-			} else {
-				fmt.Println("End time is equal to start time")
-				return errors.New("end time is equal to start time")
-			}
-		}
+		// Update end time to current time
+		currentTime := time.Now().Format("2006-01-02 15:04:05")
 
 		query = "UPDATE delivery SET deliveryboy_id=?, end_at=?, status=? WHERE id=?"
-		stmt, err := dlvstr.BaseRepsitory.DB.Prepare(query)
+		statement, err := dlvstr.BaseRepsitory.DB.Prepare(query)
 		if err != nil {
-			log.Println("error occured in prepareing updating delivery db: " + err.Error())
-			return err
+			log.Println("error occurred in updating delivery db: " + err.Error())
+			return errors.New("failed to prepare delivery update statement")
 		}
-		defer stmt.Close()
+		defer statement.Close()
 
-		// Assuming updateInfo.UserID, updateInfo.EndTime, updateInfo.Status, and updateInfo.ID are the values you want to update
-		_, err = stmt.Exec(updateInfo.UserID, updateInfo.EndTime, updateInfo.Status, updateInfo.ID)
+		res, err := statement.Exec(updateInfo.UserID, currentTime, updateInfo.Status, updateInfo.ID)
 		if err != nil {
-			log.Println("error occured in updating delivery db: " + err.Error())
-			return err
+			log.Println("error occurred in updating delivery db: " + err.Error())
+			return errors.New("failed to execute delivery update statement")
 		}
-		return nil*/
+		noOfRawAffected, err := res.RowsAffected()
+		if err != nil {
+			return errors.New("failed to get affected rows after delivery update")
+		}
+		if noOfRawAffected == 0 {
+			return errors.New("no rows affected after delivery update")
+		}
+	}
+
+	// Update deliveryboy_id and status for "pickup"
+	if updateInfo.Status == "pickup" {
+		query = "UPDATE delivery SET deliveryboy_id=?, status=? WHERE id=?"
+		statement, err := dlvstr.BaseRepsitory.DB.Prepare(query)
+		if err != nil {
+			log.Println("error occurred in updating delivery db: " + err.Error())
+			return errors.New("failed to prepare delivery update statement")
+		}
+		defer statement.Close()
+
+		res, err := statement.Exec(updateInfo.UserID, updateInfo.Status, updateInfo.ID)
+		if err != nil {
+			log.Println("error occurred in updating delivery db: " + err.Error())
+			return errors.New("failed to execute delivery update statement")
+		}
+		noOfRawAffected, err := res.RowsAffected()
+		if err != nil {
+			return errors.New("failed to get affected rows after delivery update")
+		}
+		if noOfRawAffected == 0 {
+			return errors.New("no rows affected after delivery update")
+		}
+	}
+
+	return nil
 }
 
 func (dlvstr *DeliveryStore) getCurrentStatus(deliveryID int) (string, error) {
@@ -207,7 +166,69 @@ func (dlvstr *DeliveryStore) getCurrentStatus(deliveryID int) (string, error) {
 	err := dlvstr.BaseRepsitory.DB.QueryRow(query, deliveryID).Scan(&currentStatus)
 	if err != nil {
 		log.Println(err)
-		return "", err
+		return "", errors.New("failed to fetch current delivery status")
 	}
 	return currentStatus, nil
+}
+
+func (dlvstr *DeliveryStore) GetDeliveryByID(ctx context.Context, userID int, deliveryID int) (dto.Delivery, error) {
+	var delivery dto.Delivery
+
+	// Check the role of the user
+	userRole, err := dlvstr.getUserRole(userID)
+	if err != nil {
+		return delivery, errors.New("failed to fetch user role")
+	}
+
+	switch userRole {
+	case "admin":
+		// Admin gets all delivery info by ID
+		query := "SELECT * FROM delivery WHERE id = ?"
+		err := dlvstr.BaseRepsitory.DB.QueryRow(query, deliveryID).Scan(&delivery.ID, &delivery.OrderID, &delivery.UserID, &delivery.StartTime, &delivery.EndTime, &delivery.Status)
+		if err != nil {
+			log.Println(err)
+			return delivery, errors.New("failed to fetch delivery info for admin")
+		}
+	case "customer":
+		// Customers get delivery info for their own orders
+		query := `
+            SELECT d.id, d.order_id, d.deliveryboy_id, d.start_at, d.end_at, d.status
+            FROM delivery d
+            JOIN "order" o ON d.order_id = o.id
+            WHERE o.user_id = ? AND d.id = ?
+        `
+		err := dlvstr.BaseRepsitory.DB.QueryRow(query, userID, deliveryID).Scan(&delivery.ID, &delivery.OrderID, &delivery.UserID, &delivery.StartTime, &delivery.EndTime, &delivery.Status)
+		if err != nil {
+			log.Println(err)
+			return delivery, errors.New("failed to fetch delivery info for customer")
+		}
+	case "deliveryboy":
+		// Delivery boys get delivery info for their assigned orders
+		query := `
+            SELECT d.id, d.order_id, d.deliveryboy_id, d.start_at, d.end_at, d.status
+            FROM delivery d
+            WHERE d.deliveryboy_id = ? AND d.id = ?
+        `
+		err := dlvstr.BaseRepsitory.DB.QueryRow(query, userID, deliveryID).Scan(&delivery.ID, &delivery.OrderID, &delivery.UserID, &delivery.StartTime, &delivery.EndTime, &delivery.Status)
+		if err != nil {
+			log.Println(err)
+			return delivery, errors.New("failed to fetch delivery info for delivery boy")
+		}
+	default:
+		return delivery, errors.New("invalid user role")
+	}
+
+	return delivery, nil
+}
+
+// Helper function to get user role
+func (dlvstr *DeliveryStore) getUserRole(userID int) (string, error) {
+	var userRole string
+	query := "SELECT role FROM user WHERE id = ?"
+	err := dlvstr.BaseRepsitory.DB.QueryRow(query, userID).Scan(&userRole)
+	if err != nil {
+		log.Println(err)
+		return "", errors.New("failed to fetch user role")
+	}
+	return userRole, nil
 }

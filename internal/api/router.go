@@ -20,6 +20,7 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 	//food
 	r.Handle("/foods", middleware.RequireAuth(GetFoodListHandler(deps.FoodService), []string{"customer", "deliveryboy", "admin"})).Methods(http.MethodGet)
 	r.Handle("/foods/{category_id}", middleware.RequireAuth(GetFoodListByCategoryHandler(deps.FoodService), []string{"customer", "deliveryboy", "admin"})).Methods(http.MethodGet)
+	r.Handle("/food/{food_id}", middleware.RequireAuth(GetFoodInfoByIDHandler(deps.FoodService), []string{"customer", "deliveryboy", "admin"})).Methods(http.MethodGet)
 	r.Handle("/food", middleware.RequireAuth(CreateFoodItemHandler(deps.FoodService), []string{"admin"})).Methods(http.MethodPost)
 	r.Handle("/food", middleware.RequireAuth(UpdateFoodItemHandler(deps.FoodService), []string{"admin"})).Methods(http.MethodPatch)
 
@@ -40,6 +41,7 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 	r.Handle("/order/checkout", middleware.RequireAuth(CreateInvoiceHandler(deps.OrderService), []string{"customer", "deliveryboy", "admin"})).Methods(http.MethodPost)
 	r.Handle("/order/delivery", middleware.RequireAuth(UpdateDeliveryHandler(deps.OrderService), []string{"deliveryboy", "admin"})).Methods(http.MethodPut)
 
+	r.Handle("/order/delivery/{id}", middleware.RequireAuth(GetDeliveryByIdHandler(deps.OrderService), []string{"customer", "deliveryboy", "admin"})).Methods(http.MethodGet)
 	r.Handle("/order/delivery", middleware.RequireAuth(GetDeliveryListHandler(deps.OrderService), []string{"customer", "deliveryboy", "admin"})).Methods(http.MethodGet)
 	r.Handle("/orders", middleware.RequireAuth(GetListOfOrderHandler(deps.OrderService), []string{"customer", "deliveryboy", "admin"})).Methods(http.MethodGet)                  // c
 	r.Handle("/orders/{id}", middleware.RequireAuth(GetOrderByIDHandler(deps.OrderService), []string{"customer", "deliveryboy", "admin"})).Methods(http.MethodGet)               // c

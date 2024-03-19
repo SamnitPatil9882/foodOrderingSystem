@@ -12,6 +12,6 @@ type Delivery struct {
 type DeliveryUpdateRequst struct {
 	ID      int    `json:"id"`
 	UserID  int    `json:"user_id"`
-	EndTime string `json:"end_time"`
+	// EndTime string `json:"end_time"`
 	Status  string `json:"status"`
 }

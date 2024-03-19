@@ -25,29 +25,32 @@ func (fds *FoodStore) GetListOfOrder(ctx context.Context) ([]repository.Food, er
 	query := "SELECT * FROM food ORDER BY category_id"
 	rows, err := fds.BaseRepsitory.DB.Query(query)
 	if err != nil {
-		fmt.Println("error occured in selecting food : " + err.Error())
-		return foodList, err
+		return foodList, fmt.Errorf("failed to fetch list of food: %v", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
 		food := repository.Food{}
-		rows.Scan(&food.ID, &food.CategoryID, &food.Price, &food.Name, &food.IsVeg, &food.IsAvail)
-		fmt.Println(food)
+		if err := rows.Scan(&food.ID, &food.CategoryID, &food.Price, &food.Name, &food.IsVeg, &food.IsAvail); err != nil {
+			return foodList, fmt.Errorf("failed to scan food row: %v", err)
+		}
 		foodList = append(foodList, food)
 	}
 	return foodList, nil
 }
+
 func (fds *FoodStore) GetFoodByCategory(ctx context.Context, categoryID int) ([]repository.Food, error) {
 	foodList := make([]repository.Food, 0)
 	query := fmt.Sprintf("SELECT * FROM food WHERE category_id=%d", categoryID)
 	rows, err := fds.BaseRepsitory.DB.Query(query)
 	if err != nil {
-		fmt.Println("error occured in selecting food by category: " + err.Error())
+		return foodList, fmt.Errorf("failed to fetch food by category: %v", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
 		food := repository.Food{}
-		rows.Scan(&food.ID, &food.CategoryID, &food.Price, &food.Name, &food.IsVeg, &food.IsAvail)
+		if err := rows.Scan(&food.ID, &food.CategoryID, &food.Price, &food.Name, &food.IsVeg, &food.IsAvail); err != nil {
+			return foodList, fmt.Errorf("failed to scan food row: %v", err)
+		}
 		foodList = append(foodList, food)
 	}
 	return foodList, nil
@@ -58,35 +61,29 @@ func (fds *FoodStore) CreateFood(ctx context.Context, fd dto.FoodCreateRequest) 
 	query := "INSERT INTO food (name,price,category_id,is_veg,is_avail) VALUES(?,?,?,?,?)"
 	statement, err := fds.BaseRepsitory.DB.Prepare(query)
 	if err != nil {
-		fmt.Println("error in inserting: " + err.Error())
-		return food, err
+		return food, fmt.Errorf("failed to prepare food insertion: %v", err)
 	}
 	defer statement.Close()
 	res, err := statement.Exec(fd.Name, fd.Price, fd.CategoryID, fd.IsVeg, fd.IsAvail)
 	if err != nil {
-		fmt.Println("error occured in executing insert query: " + err.Error())
-		return food, err
+		return food, fmt.Errorf("failed to execute food insertion query: %v", err)
 	}
 	id, err := res.LastInsertId()
 	if err != nil {
-		fmt.Println("error occured in getting lastInsertId: " + err.Error())
-		return food, err
+		return food, fmt.Errorf("failed to fetch last insert ID: %v", err)
 	}
 
 	query = fmt.Sprintf("SELECT * FROM food WHERE id=%d", id)
-	fmt.Println(id)
 	rows, err := fds.BaseRepsitory.DB.Query(query)
 	if err != nil {
-		fmt.Println("error occured in selecting food by id: " + err.Error())
-		return food, err
+		return food, fmt.Errorf("failed to fetch food by ID: %v", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
-		// food := repository.Food{}
-		rows.Scan(&food.ID, &food.CategoryID, &food.Price, &food.Name, &food.IsVeg, &food.IsAvail)
-		// foodList = append(foodList, food)
+		if err := rows.Scan(&food.ID, &food.CategoryID, &food.Price, &food.Name, &food.IsVeg, &food.IsAvail); err != nil {
+			return food, fmt.Errorf("failed to scan food row: %v", err)
+		}
 	}
-	fmt.Println(food)
 	return food, nil
 }
 
@@ -96,37 +93,38 @@ func (fds *FoodStore) UpdateFood(ctx context.Context, food dto.Food) (repository
 	query := fmt.Sprintf("UPDATE food SET category_id = %d,price=%d,name=\"%s\",is_veg=%d ,is_avail = %d WHERE id=%d", food.CategoryID, food.Price, food.Name, food.IsVeg, food.IsAvail, food.ID)
 	statement, err := fds.BaseRepsitory.DB.Prepare(query)
 	if err != nil {
-		fmt.Println("Error occured in update prepare statement: " + err.Error())
-		return resFood, err
+		return resFood, fmt.Errorf("failed to prepare food update: %v", err)
 	}
 	defer statement.Close()
-	_, err = statement.Exec()
+	res, err := statement.Exec()
 	if err != nil {
-		fmt.Println("error occured in execution of update food query: " + err.Error())
-		return resFood, err
+		return resFood, fmt.Errorf("failed to execute food update query: %v", err)
+	}
+	noOfRawAffected, err := res.RowsAffected()
+	if err != nil {
+		return resFood, fmt.Errorf("failed to get rows affected: %v", err)
+	}
+	if noOfRawAffected == 0 {
+		return resFood, errors.New("no rows affected")
 	}
 
 	query = fmt.Sprintf("SELECT * FROM food WHERE id=%d", food.ID)
-	// fmt.Println(id)
 	rows, err := fds.BaseRepsitory.DB.Query(query)
 	if err != nil {
-		fmt.Println("error occured in selecting food by id: " + err.Error())
-		return resFood, err
+		return resFood, fmt.Errorf("failed to fetch food by ID: %v", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
-		// food := repository.Food{}
-		rows.Scan(&resFood.ID, &resFood.CategoryID, &resFood.Price, &resFood.Name, &resFood.IsVeg, &resFood.IsAvail)
-		// foodList = append(foodList, food)
+		if err := rows.Scan(&resFood.ID, &resFood.CategoryID, &resFood.Price, &resFood.Name, &resFood.IsVeg, &resFood.IsAvail); err != nil {
+			return resFood, fmt.Errorf("failed to scan food row: %v", err)
+		}
 	}
-	// fmt.Println(food)
 	return resFood, nil
 }
 
 func (fds *FoodStore) GetFoodByID(ctx context.Context, FoodID int64) (repository.Food, error) {
 	food := repository.Food{}
-	fmt.Printf("in db %d", FoodID)
-	// query := fmt.Sprintf("SELECT * FROM food WHERE id = %d", FoodID)
+
 	query := fmt.Sprintf(`
 	SELECT f.id, f.category_id, f.price, f.name, f.is_veg, f.is_avail
 	FROM food f
@@ -136,8 +134,24 @@ func (fds *FoodStore) GetFoodByID(ctx context.Context, FoodID int64) (repository
 
 	rows, err := fds.BaseRepsitory.DB.Query(query)
 	if err != nil {
-		fmt.Println("error occured in selecting food by id: " + err.Error())
+		return food, fmt.Errorf("failed to fetch food by ID: %v", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		err = rows.Scan(&food.ID, &food.CategoryID, &food.Price, &food.Name, &food.IsVeg, &food.IsAvail)
 		return food, err
+	}
+	return food, errors.New("no match found")
+}
+
+func (fds *FoodStore) GetFoodInfoByID(ctx context.Context, FoodID int64) (dto.Food, error) {
+	food := dto.Food{}
+
+	query := fmt.Sprintf("SELECT * FROM food WHERE id = %d", FoodID)
+
+	rows, err := fds.BaseRepsitory.DB.Query(query)
+	if err != nil {
+		return food, fmt.Errorf("failed to fetch food by ID: %v", err)
 	}
 	defer rows.Close()
 	for rows.Next() {

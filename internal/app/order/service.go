@@ -24,6 +24,7 @@ type Service interface {
 	RemoveOrderItem(ctx context.Context, id int) ([]dto.CartItem, error)
 	CreateInvoice(ctx context.Context, invoiceInfo dto.InvoiceCreation) (dto.Invoice, error)
 	GetDeliveryList(ctx context.Context, userID int) ([]dto.Delivery, error)
+	GetDeliveryByID(ctx context.Context, userID, deliveryID int) (dto.Delivery, error)
 	UpdateDeliveryInfo(ctx context.Context, updateInfo dto.DeliveryUpdateRequst) error
 	GetListOfOrders(ctx context.Context, userID int, role string) ([]dto.Order, error)
 
@@ -46,6 +47,7 @@ func (ods *service) AddOrderItem(ctx context.Context, orderItemId int, quantity 
 	flg := isIDPresent(ods.Cart, orderItemId, quantity)
 	if flg {
 		// ods.Cart = append(ods.Cart, dto.CartItem{ID: orderItemId, Quantity: quantity, FoodName: fd.Name, Price: quantity * int(fd.Price)})
+		// TODO: return error
 		return nil
 	}
 	fd, err := ods.foodService.GetFoodByID(ctx, orderItemId)
@@ -97,6 +99,17 @@ func (ods *service) GetDeliveryList(ctx context.Context, userID int) ([]dto.Deli
 		return []dto.Delivery{}, err
 	}
 	return dlvryList, nil
+}
+
+func (ods *service) GetDeliveryByID(ctx context.Context, userID, deliveryID int) (dto.Delivery, error) {
+    var delivery dto.Delivery
+    delivery, err := ods.deliveryRepo.GetDeliveryByID(ctx, userID, deliveryID)
+    if err != nil {
+        log.Println(err)
+        return dto.Delivery{}, err
+    }
+
+    return delivery, nil
 }
 
 func (ods *service) UpdateDeliveryInfo(ctx context.Context, updateInfo dto.DeliveryUpdateRequst) error {

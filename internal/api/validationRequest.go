@@ -3,10 +3,10 @@ package api
 import (
 	"errors"
 	"fmt"
-	"log"
+	// "log"
 	"regexp"
 	"strings"
-	"time"
+	// "time"
 
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal"
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/pkg/dto"
@@ -148,18 +148,18 @@ func validateUpdateDelivery(req *dto.DeliveryUpdateRequst) error {
 	} else if deliveryStatus[deliverystat] != 1 {
 		return errors.New(internal.InvalidDeliveryStatus)
 	}
-	if req.EndTime == "" {
-		return nil
-	}
-	layout := "2006-01-02 15:04:05"
-	_, err := time.Parse(layout, req.EndTime)
-	if err != nil {
-		log.Println("Invalid time format:", err)
-		return errors.New(internal.InvalidTimeFormat)
-	} else {
-		log.Println("Valid time format")
+	// if req.EndTime == "" {
+	// 	return nil
+	// }
+	// layout := "2006-01-02 15:04:05"
+	// _, err := time.Parse(layout, req.EndTime)
+	// if err != nil {
+	// 	log.Println("Invalid time format:", err)
+	// 	return errors.New(internal.InvalidTimeFormat)
+	// } else {
+	// 	log.Println("Valid time format")
 
-	}
+	// }
 	return nil
 
 }

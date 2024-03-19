@@ -12,6 +12,7 @@ type FoodStorer interface {
 	GetFoodByID(ctx context.Context, FoodID int64) (Food, error)
 	UpdateFood(ctx context.Context, food dto.Food) (Food, error)
 	CreateFood(ctx context.Context, food dto.FoodCreateRequest) (Food, error)
+	GetFoodInfoByID(ctx context.Context, FoodID int64) (dto.Food, error)
 }
 
 type Food struct {

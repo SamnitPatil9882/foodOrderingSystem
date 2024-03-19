@@ -29,5 +29,6 @@ func main() {
 	r := api.NewRouter(services)
 
 	http.ListenAndServe(fmt.Sprintf(":%d", constants.HTTPPort), r)
+	fmt.Println("Server is running on port : ", constants.HTTPPort)
 
 }

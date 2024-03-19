@@ -9,6 +9,7 @@ import (
 type DeliveryStorer interface {
 	GetDeliveryList(ctx context.Context,userID int) ([]dto.Delivery, error)
 	UpdateDeliveryInfo(ctx context.Context, updateInfo dto.DeliveryUpdateRequst) error
+	GetDeliveryByID(ctx context.Context, userID int, deliveryID int) (dto.Delivery, error)
 }
 type Delivery struct {
 	ID        int
