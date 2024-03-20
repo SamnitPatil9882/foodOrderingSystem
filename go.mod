@@ -11,6 +11,7 @@ require golang.org/x/crypto v0.19.0
 require github.com/dgrijalva/jwt-go v3.2.0+incompatible
 
 require (
+	github.com/rs/cors v1.10.1
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/text v0.14.0
 )

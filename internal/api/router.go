@@ -10,7 +10,11 @@ import (
 
 func NewRouter(deps app.Dependencies) *mux.Router {
 
+
+	
+	
 	r := mux.NewRouter()
+	// handler:= c.Handler(mux)
 	//category
 	r.Handle("/categories", middleware.RequireAuth(GetCategoriesHandler(deps.CategoryService), []string{"customer", "deliveryboy", "admin"})).Methods(http.MethodGet)
 	r.Handle("/categories/{category_id}", middleware.RequireAuth(GetCategoryHandler(deps.CategoryService), []string{"customer", "deliveryboy", "admin"})).Methods(http.MethodGet)
