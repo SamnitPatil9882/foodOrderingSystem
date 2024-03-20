@@ -165,41 +165,45 @@ func validateUpdateDelivery(req *dto.DeliveryUpdateRequst) error {
 }
 
 func validateCreateUserReq(user *dto.UserSignUpRequest) error {
-	if len(user.Firstname) < 2 && containsOnlyAlphabets(user.Firstname) {
-		return errors.New(internal.InvalidFirstName)
-	} else if len(user.Lastname) < 2 && containsOnlyAlphabets(user.Firstname) {
-		return errors.New(internal.InvalidLastName)
-	} else if len(user.Phone) < 10 && containsOnlyDigits(user.Phone) {
-		return errors.New(internal.InvalidPhoneNumber)
-	} else if roleOfUser[strings.ToLower(user.Role)] != 1 {
-		return errors.New(internal.InvalidRole)
-	} else if !(isValidEmail(user.Email)) {
-		return errors.New(internal.InvalidEmail)
-	} else if !(isValidPassword(user.Password)) {
-		return errors.New(internal.InvalidPassword)
-	}
+    fmt.Println("Valid create user request", user)
 
-	user.Lastname = cases.Title(language.Und, cases.NoLower).String(user.Lastname)
-	user.Firstname = cases.Title(language.Und, cases.NoLower).String(user.Firstname)
-	return nil
+    if len(user.Firstname) < 2 || !containsOnlyAlphabets(user.Firstname) {
+        return errors.New(internal.InvalidFirstName)
+    } else if len(user.Lastname) < 2 || !containsOnlyAlphabets(user.Lastname) {
+        return errors.New(internal.InvalidLastName)
+    } else if len(user.Phone) < 10 || !containsOnlyDigits(user.Phone) {
+        return errors.New(internal.InvalidPhoneNumber)
+    } else if roleOfUser[strings.ToLower(user.Role)] != 1 {
+        return errors.New(internal.InvalidRole)
+    } else if !isValidEmail(user.Email) {
+        return errors.New(internal.InvalidEmail)
+    } else if !isValidPassword(user.Password) {
+        return errors.New(internal.InvalidPassword)
+    }
+
+    user.Lastname = cases.Title(language.Und, cases.NoLower).String(user.Lastname)
+    user.Firstname = cases.Title(language.Und, cases.NoLower).String(user.Firstname)
+    return nil
 }
+
 func validateUpdateUserInfo(user dto.UpdateUserInfo) error {
-	if len(user.Firstname) < 2 && containsOnlyAlphabets(user.Firstname) {
-		return errors.New(internal.InvalidFirstName)
-	} else if len(user.Lastname) < 2 && containsOnlyAlphabets(user.Firstname) {
-		return errors.New(internal.InvalidLastName)
-	} else if len(user.Phone) < 10 && containsOnlyDigits(user.Phone) {
-		return errors.New(internal.InvalidPhoneNumber)
-	} else if !(isValidEmail(user.Email)) {
-		return errors.New(internal.InvalidEmail)
-	} else if !(isValidPassword(user.Password)) {
-		return errors.New(internal.InvalidPassword)
-	}
+    if len(user.Firstname) < 2 || !containsOnlyAlphabets(user.Firstname) {
+        return errors.New(internal.InvalidFirstName)
+    } else if len(user.Lastname) < 2 || !containsOnlyAlphabets(user.Lastname) {
+        return errors.New(internal.InvalidLastName)
+    } else if len(user.Phone) < 10 || !containsOnlyDigits(user.Phone) {
+        return errors.New(internal.InvalidPhoneNumber)
+    } else if !isValidEmail(user.Email) {
+        return errors.New(internal.InvalidEmail)
+    } else if !isValidPassword(user.Password) {
+        return errors.New(internal.InvalidPassword)
+    }
 
-	user.Lastname = cases.Title(language.Und, cases.NoLower).String(user.Lastname)
-	user.Firstname = cases.Title(language.Und, cases.NoLower).String(user.Firstname)
-	return nil
+    user.Lastname = cases.Title(language.Und, cases.NoLower).String(user.Lastname)
+    user.Firstname = cases.Title(language.Und, cases.NoLower).String(user.Firstname)
+    return nil
 }
+
 func isValidEmail(email string) bool {
 	// Regular expression for validating email addresses
 	emailRegex := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
@@ -222,8 +226,9 @@ func isValidPassword(password string) bool {
 }
 
 func containsOnlyAlphabets(s string) bool {
-
 	alphaRegex := regexp.MustCompile("^[a-zA-Z]+$")
+	fmt.Println("string: ",s,alphaRegex.MatchString(s));
+	fmt.Println("string result: ",alphaRegex.MatchString(s));
 	return alphaRegex.MatchString(s)
 }
 func containsOnlyDigits(s string) bool {
