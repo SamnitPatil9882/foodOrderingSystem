@@ -16,15 +16,15 @@ import (
 )
 
 func SignUpHandler(userSvc user.Service) http.HandlerFunc {
-    return func(w http.ResponseWriter, r *http.Request) {
-        ctx := r.Context()
-        sgnUpReq := dto.UserSignUpRequest{}
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		sgnUpReq := dto.UserSignUpRequest{}
 
-        err := json.NewDecoder(r.Body).Decode(&sgnUpReq)
-        if err != nil {
-            http.Error(w, err.Error(), http.StatusBadRequest)
-            return
-        }
+		err := json.NewDecoder(r.Body).Decode(&sgnUpReq)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 		err = validateCreateUserReq(&sgnUpReq)
 		if err != nil {
 			log.Println(err.Error())
@@ -34,39 +34,41 @@ func SignUpHandler(userSvc user.Service) http.HandlerFunc {
 			return
 		}
 
-        resp, err := userSvc.Signup(ctx, sgnUpReq)
-        if err != nil {
-            if err == internal.ErrEmailExists || err == internal.ErrPhoneExists  {
-                http.Error(w, err.Error(), 422)
-                return
-            }
-            if err == internal.ErrPhoneExists {
-                http.Error(w, "Phone number already exists", 422)
-                return
-            }
-            http.Error(w, err.Error(), http.StatusInternalServerError)
-            return
-        }
+		resp, err := userSvc.Signup(ctx, sgnUpReq)
+		if err != nil {
+			if err == internal.ErrEmailExists || err == internal.ErrPhoneExists {
+				http.Error(w, err.Error(), 422)
+				return
+			}
+			if err == internal.ErrPhoneExists {
+				http.Error(w, "Phone number already exists", 422)
+				return
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-        token, err := GenerateJWT(resp)
-        if err != nil {
-            http.Error(w, err.Error(), http.StatusUnauthorized)
-            return
-        }
-        w.Header().Set("Authorization", "Bearer "+token)
-        w.WriteHeader(http.StatusAccepted)
-    }
+		token, err := GenerateJWT(resp)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+		w.Header().Set("Authorization", "Bearer "+token)
+		w.WriteHeader(http.StatusAccepted)
+		successResp := dto.UserLoginSuccessfulResponse{Token: "Bearer " + token}
+		json.NewEncoder(w).Encode(successResp)
+	}
 }
 
 func LoginHandler(userSvc user.Service) http.HandlerFunc {
-    return func(w http.ResponseWriter, r *http.Request) {
-        ctx := r.Context()
-        loginReq := dto.UserLoginRequest{}
-        err := json.NewDecoder(r.Body).Decode(&loginReq)
-        if err != nil {
-            http.Error(w, err.Error(), http.StatusInternalServerError)
-            return
-        }
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		loginReq := dto.UserLoginRequest{}
+		err := json.NewDecoder(r.Body).Decode(&loginReq)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		valres := isValidEmail(loginReq.Email) && isValidPassword(loginReq.Password)
 		if !valres {
 			log.Println(err.Error())
@@ -76,24 +78,26 @@ func LoginHandler(userSvc user.Service) http.HandlerFunc {
 			return
 		}
 
-        resp, err := userSvc.Login(ctx, loginReq)
-        if err != nil {
-            if err == internal.ErrUserNotFound || err == internal.ErrEmailOrPasswordIncorrect {
-                http.Error(w, err.Error(), http.StatusUnprocessableEntity)
-                return
-            }
-            http.Error(w, err.Error(), http.StatusInternalServerError)
-            return
-        }
+		resp, err := userSvc.Login(ctx, loginReq)
+		if err != nil {
+			if err == internal.ErrUserNotFound || err == internal.ErrEmailOrPasswordIncorrect {
+				http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+				return
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-        token, err := GenerateJWT(resp)
-        if err != nil {
-            http.Error(w, err.Error(), http.StatusInternalServerError)
-            return
-        }
-        w.Header().Set("Authorization", "Bearer "+token)
-        w.WriteHeader(http.StatusAccepted)
-    }
+		token, err := GenerateJWT(resp)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Authorization", "Bearer "+token)
+		w.WriteHeader(http.StatusAccepted)
+		successResp := dto.UserLoginSuccessfulResponse{Token: "Bearer " + token}
+		json.NewEncoder(w).Encode(successResp)
+	}
 }
 
 func GetUsersHandler(userSvc user.Service) http.HandlerFunc {
@@ -142,7 +146,7 @@ func GetUserHandler(userSvc user.Service) http.HandlerFunc {
 	}
 }
 
-func UpdateUserHandler(userSvc user.Service)  http.HandlerFunc  {
+func UpdateUserHandler(userSvc user.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		userInfo := dto.UpdateUserInfo{}
@@ -165,9 +169,9 @@ func UpdateUserHandler(userSvc user.Service)  http.HandlerFunc  {
 		resp, err := userSvc.UpdateUser(ctx, userInfo, getUserID(r))
 		if err != nil {
 			if err == internal.ErrUserNotFound {
-                http.Error(w, err.Error(), http.StatusUnprocessableEntity)
-                return
-            }
+				http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+				return
+			}
 			log.Println(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: err.Error()}

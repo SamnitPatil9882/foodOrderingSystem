@@ -33,6 +33,10 @@ type UserResponse struct {
 type UserLoginResponse struct {
 	ID   int
 	Role string
+	Token string
+}
+type UserLoginSuccessfulResponse struct {
+	Token string
 }
 type UpdateUserInfo struct {
 	Phone     string `json:"phone"`
