@@ -21,8 +21,9 @@ func GetCategoriesHandler(categorySvc category.Service) http.HandlerFunc {
 		respone, err := categorySvc.GetCategories(ctx)
 		if err != nil {
 			log.Println("Handler error: " + err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-			errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: internal.InternalServerError}
+			httpStatusCode := internal.GetHTTPStatusCode(err);
+			w.WriteHeader(httpStatusCode)
+			errResp := dto.ErrorResponse{Error: httpStatusCode, Description: err.Error()}
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}
@@ -51,7 +52,7 @@ func GetCategoryHandler(categorySvc category.Service) http.HandlerFunc {
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			// http.Error(w, "enter valid data", http.StatusBadRequest)
-			errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: internal.InternalServerError}
+			errResp := dto.ErrorResponse{Error: http.StatusBadRequest, Description: "Bad request"}
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}
@@ -65,10 +66,9 @@ func GetCategoryHandler(categorySvc category.Service) http.HandlerFunc {
 		}
 		respone, err := categorySvc.GetCategory(ctx, category_id)
 		if err != nil {
-			log.Println("error in getting categories: " + err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-			// http.Error(w, err.Error(), http.StatusBadRequest)
-			errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: err.Error()}
+			httpStatusCode := internal.GetHTTPStatusCode(err);
+			w.WriteHeader(httpStatusCode)
+			errResp := dto.ErrorResponse{Error: httpStatusCode, Description: err.Error()}
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}
@@ -103,8 +103,9 @@ func CreateCategoryHandler(categorySvc category.Service) http.HandlerFunc {
 		response, err := categorySvc.CreateCategory(ctx, category)
 		if err != nil {
 			log.Println("error occured in createcategoryHandler" + err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-			errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: err.Error()}
+			httpStatusCode := internal.GetHTTPStatusCode(err);
+			w.WriteHeader(httpStatusCode)
+			errResp := dto.ErrorResponse{Error: httpStatusCode, Description: err.Error()}
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}
@@ -138,8 +139,9 @@ func UpdateCategoryHandler(categorySvc category.Service) http.HandlerFunc {
 		response, err := categorySvc.UpdateCategory(ctx, category)
 		if err != nil {
 			log.Println("error occured in createcategoryHandler: " + err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-			errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: err.Error()}
+			httpStatusCode := internal.GetHTTPStatusCode(err);
+			w.WriteHeader(httpStatusCode)
+			errResp := dto.ErrorResponse{Error: httpStatusCode, Description: err.Error()}
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}

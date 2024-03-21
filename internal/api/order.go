@@ -34,8 +34,9 @@ func AddOrderItemHandler(orderSvc order.Service) http.HandlerFunc {
 		}
 		err = orderSvc.AddOrderItem(ctx, req.ID, req.Quantity)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: err.Error()}
+			httpStatusCode := internal.GetHTTPStatusCode(err)
+			w.WriteHeader(httpStatusCode)
+			errResp := dto.ErrorResponse{Error: httpStatusCode, Description: err.Error()}
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}
@@ -47,7 +48,7 @@ func GetOrderedItemsHandler(orderSvc order.Service) http.HandlerFunc {
 		ctx := r.Context()
 		resp := orderSvc.GetOrderList(ctx)
 		if len(resp) == 0 {
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(http.StatusNotFound)
 			errResp := dto.ErrorResponse{Error: http.StatusBadRequest, Description: internal.EmptyCart}
 			json.NewEncoder(w).Encode(errResp)
 			return
@@ -77,8 +78,9 @@ func RemoveOrderedItemsHandler(orderSvc order.Service) http.HandlerFunc {
 		log.Println(id)
 		resp, err := orderSvc.RemoveOrderItem(ctx, int(id))
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: err.Error()}
+			httpStatusCode := internal.GetHTTPStatusCode(err)
+			w.WriteHeader(httpStatusCode)
+			errResp := dto.ErrorResponse{Error: httpStatusCode, Description: err.Error()}
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}
@@ -113,8 +115,9 @@ func CreateInvoiceHandler(orderSvc order.Service) http.HandlerFunc {
 		req.UserID = userId
 		resp, err := orderSvc.CreateInvoice(ctx, req)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: err.Error()}
+			httpStatusCode := internal.GetHTTPStatusCode(err)
+			w.WriteHeader(httpStatusCode)
+			errResp := dto.ErrorResponse{Error: httpStatusCode, Description: err.Error()}
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}
@@ -128,7 +131,7 @@ func GetDeliveryListHandler(orderSvc order.Service) http.HandlerFunc {
 		userID := getUserID(r)
 		if userID == 0 {
 			w.WriteHeader(http.StatusUnauthorized)
-			log.Println("invalid access token")
+			log.Println("invalid access token : order")
 			errResp := dto.ErrorResponse{Error: http.StatusUnauthorized, Description: internal.Unauthorized}
 			json.NewEncoder(w).Encode(errResp)
 			return
@@ -136,7 +139,7 @@ func GetDeliveryListHandler(orderSvc order.Service) http.HandlerFunc {
 		role := getRole(r)
 		if role == "" {
 			w.WriteHeader(http.StatusBadRequest)
-			log.Println("invalid access token")
+			log.Println("invalid access token: order role")
 			errResp := dto.ErrorResponse{Error: http.StatusBadRequest, Description: internal.Unauthorized}
 			json.NewEncoder(w).Encode(errResp)
 			return
@@ -144,8 +147,9 @@ func GetDeliveryListHandler(orderSvc order.Service) http.HandlerFunc {
 		if role == "customer" {
 			resp, err := orderSvc.GetDeliveryList(ctx, userID)
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: err.Error()}
+				httpStatusCode := internal.GetHTTPStatusCode(err)
+				w.WriteHeader(httpStatusCode)
+				errResp := dto.ErrorResponse{Error: httpStatusCode, Description: err.Error()}
 				json.NewEncoder(w).Encode(errResp)
 				return
 			}
@@ -153,8 +157,9 @@ func GetDeliveryListHandler(orderSvc order.Service) http.HandlerFunc {
 		} else {
 			resp, err := orderSvc.GetDeliveryList(ctx, -1)
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: err.Error()}
+				httpStatusCode := internal.GetHTTPStatusCode(err)
+				w.WriteHeader(httpStatusCode)
+				errResp := dto.ErrorResponse{Error: httpStatusCode, Description: err.Error()}
 				json.NewEncoder(w).Encode(errResp)
 				return
 			}
@@ -186,18 +191,19 @@ func GetDeliveryByIdHandler(orderSvc order.Service) http.HandlerFunc {
 		userID := getUserID(r)
 		if userID == 0 {
 			w.WriteHeader(http.StatusUnauthorized)
-			log.Println("invalid access token")
+			log.Println("invalid access token: order id")
 			errResp := dto.ErrorResponse{Error: http.StatusUnauthorized, Description: internal.Unauthorized}
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}
-		resp, err := orderSvc.GetDeliveryByID(ctx,userID, int(id))
-		if err!= nil {
-			w.WriteHeader(http.StatusInternalServerError)
-            errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: err.Error()}
-            json.NewEncoder(w).Encode(errResp)
-            return
-        }
+		resp, err := orderSvc.GetDeliveryByID(ctx, userID, int(id))
+		if err != nil {
+			httpStatusCode := internal.GetHTTPStatusCode(err);
+			w.WriteHeader(httpStatusCode)
+			errResp := dto.ErrorResponse{Error: httpStatusCode, Description: err.Error()}
+			json.NewEncoder(w).Encode(errResp)
+			return
+		}
 		json.NewEncoder(w).Encode(resp)
 	}
 }
@@ -209,7 +215,7 @@ func GetListOfOrderHandler(orderSvc order.Service) http.HandlerFunc {
 		userID := getUserID(r)
 		if userID == 0 {
 			w.WriteHeader(http.StatusUnauthorized)
-			log.Println("invalid access token")
+			log.Println("invalid access token: order id 1")
 			errResp := dto.ErrorResponse{Error: http.StatusUnauthorized, Description: internal.Unauthorized}
 			json.NewEncoder(w).Encode(errResp)
 			return
@@ -217,7 +223,7 @@ func GetListOfOrderHandler(orderSvc order.Service) http.HandlerFunc {
 		role := getRole(r)
 		if role == "" {
 			w.WriteHeader(http.StatusBadRequest)
-			log.Println("invalid access token")
+			log.Println("invalid access token: order role")
 			errResp := dto.ErrorResponse{Error: http.StatusBadRequest, Description: internal.Unauthorized}
 			json.NewEncoder(w).Encode(errResp)
 			return
@@ -225,8 +231,9 @@ func GetListOfOrderHandler(orderSvc order.Service) http.HandlerFunc {
 
 		resp, err := orderSvc.GetListOfOrders(ctx, userID, role)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			errResp := dto.ErrorResponse{Error: http.StatusBadRequest, Description: err.Error()}
+			httpStatusCode := internal.GetHTTPStatusCode(err);
+			w.WriteHeader(httpStatusCode)
+			errResp := dto.ErrorResponse{Error: httpStatusCode, Description: err.Error()}
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}
@@ -260,7 +267,7 @@ func GetOrderByIDHandler(orderSvc order.Service) http.HandlerFunc {
 		userID := getUserID(r)
 		if userID == 0 {
 			w.WriteHeader(http.StatusUnauthorized)
-			log.Println("invalid access token")
+			log.Println("invalid access token: order id")
 			errResp := dto.ErrorResponse{Error: http.StatusUnauthorized, Description: internal.Unauthorized}
 			json.NewEncoder(w).Encode(errResp)
 			return
@@ -268,15 +275,16 @@ func GetOrderByIDHandler(orderSvc order.Service) http.HandlerFunc {
 		role := getRole(r)
 		if role == "" {
 			w.WriteHeader(http.StatusBadRequest)
-			log.Println("invalid access token")
+			log.Println("invalid access token: order role")
 			errResp := dto.ErrorResponse{Error: http.StatusBadRequest, Description: internal.Unauthorized}
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}
 		resp, err := orderSvc.GetOrderByID(ctx, int(id), userID, role)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: err.Error()}
+			httpStatusCode := internal.GetHTTPStatusCode(err);
+			w.WriteHeader(httpStatusCode)
+			errResp := dto.ErrorResponse{Error: httpStatusCode, Description: err.Error()}
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}
@@ -305,7 +313,7 @@ func GetInvoiceOrderByIDHandler(orderSvc order.Service) http.HandlerFunc {
 		userID := getUserID(r)
 		if userID == 0 {
 			w.WriteHeader(http.StatusUnauthorized)
-			log.Println("invalid access token")
+			log.Println("invalid access token: order id")
 			errResp := dto.ErrorResponse{Error: http.StatusUnauthorized, Description: internal.Unauthorized}
 			json.NewEncoder(w).Encode(errResp)
 			return
@@ -313,15 +321,16 @@ func GetInvoiceOrderByIDHandler(orderSvc order.Service) http.HandlerFunc {
 		role := getRole(r)
 		if role == "" {
 			w.WriteHeader(http.StatusBadRequest)
-			log.Println("invalid access token")
+			log.Println("invalid access token: order role")
 			errResp := dto.ErrorResponse{Error: http.StatusBadRequest, Description: internal.Unauthorized}
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}
 		resp, err := orderSvc.GetInvoiceByOrderID(ctx, int(id), userID, role)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: err.Error()}
+			httpStatusCode := internal.GetHTTPStatusCode(err);
+			w.WriteHeader(httpStatusCode)
+			errResp := dto.ErrorResponse{Error: httpStatusCode, Description: err.Error()}
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}
@@ -398,7 +407,7 @@ func GetOrderItemsByOrderIDHandler(orderSvc order.Service) http.HandlerFunc {
 func getUserID(r *http.Request) int {
 	log.Println("in get userid")
 	tokenString := r.Header.Get("Authorization")
-	tokenString = strings.Replace(tokenString, "Bearer", "", 1)
+	tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
 
 	// Parse and validate JWT token
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -422,7 +431,7 @@ func getUserID(r *http.Request) int {
 func getRole(r *http.Request) string {
 	log.Println("in get userid")
 	tokenString := r.Header.Get("Authorization")
-	tokenString = strings.Replace(tokenString, "Bearer", "", 1)
+	tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
 
 	// Parse and validate JWT token
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {

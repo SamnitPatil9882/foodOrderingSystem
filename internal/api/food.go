@@ -18,8 +18,9 @@ func GetFoodListHandler(foodSvc food.Service) http.HandlerFunc {
 		ctx := r.Context()
 		respones, err := foodSvc.GetFoodList(ctx)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: err.Error()}
+			httpStatusCode := internal.GetHTTPStatusCode(err);
+			w.WriteHeader(httpStatusCode)
+			errResp := dto.ErrorResponse{Error: httpStatusCode, Description: err.Error()}
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}
@@ -85,7 +86,10 @@ func GetFoodInfoByIDHandler(foodSvc food.Service) http.HandlerFunc {
 		if err != nil {
 			log.Println("error occured in Getting food list in handler: " + err.Error())
 			// w.WriteHeader(http.StatusInternalServerError)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			httpStatusCode := internal.GetHTTPStatusCode(err);
+			w.WriteHeader(httpStatusCode)
+			errResp := dto.ErrorResponse{Error: httpStatusCode, Description: err.Error()}
+			json.NewEncoder(w).Encode(errResp)
 			return
 		}
 		json.NewEncoder(w).Encode(respones)
@@ -112,8 +116,9 @@ func CreateFoodItemHandler(foodSvc food.Service) http.HandlerFunc {
 		if err != nil {
 			log.Println("Error in create food Handler: " + err.Error())
 			// w.WriteHeader(404)
-			w.WriteHeader(http.StatusInternalServerError)
-			errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: err.Error()}
+			httpStatusCode := internal.GetHTTPStatusCode(err);
+			w.WriteHeader(httpStatusCode)
+			errResp := dto.ErrorResponse{Error: httpStatusCode, Description: err.Error()}
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}
@@ -147,8 +152,9 @@ func UpdateFoodItemHandler(foodSvc food.Service) http.HandlerFunc {
 		response, err := foodSvc.UpdateFoodItem(ctx, req)
 		if err != nil {
 			log.Println("Error in update food Handler: " + err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-			errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: err.Error()}
+			httpStatusCode := internal.GetHTTPStatusCode(err);
+			w.WriteHeader(httpStatusCode)
+			errResp := dto.ErrorResponse{Error: httpStatusCode, Description: err.Error()}
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}

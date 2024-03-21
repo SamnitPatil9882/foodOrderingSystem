@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/SamnitPatil9882/foodOrderingSystem/internal"
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/pkg/dto"
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/repository"
 )
@@ -40,7 +41,7 @@ func (dlvstr *DeliveryStore) GetDeliveryList(ctx context.Context, userID int) ([
 	rows, err := dlvstr.BaseRepsitory.DB.Query(query)
 	if err != nil {
 		log.Println(err)
-		return dlvList, errors.New("failed to fetch delivery list")
+		return dlvList, err
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -50,7 +51,7 @@ func (dlvstr *DeliveryStore) GetDeliveryList(ctx context.Context, userID int) ([
 		err := rows.Scan(&dlvry.ID, &dlvry.OrderID, &deliveryBoyID, &dlvry.StartTime, &endAt, &dlvry.Status)
 		if err != nil {
 			log.Println(err)
-			return dlvList, errors.New("failed to scan delivery row")
+			return dlvList, err
 		}
 		if deliveryBoyID.Valid {
 			dlvry.UserID = int(deliveryBoyID.Int64)
@@ -74,7 +75,8 @@ func (dlvstr *DeliveryStore) UpdateDeliveryInfo(ctx context.Context, updateInfo 
 	rows, err := dlvstr.BaseRepsitory.DB.Query(query)
 	if err != nil {
 		log.Println(err)
-		return errors.New("failed to query user information")
+		// return errors.New("failed to query user information")
+		return err;
 	}
 	defer rows.Close()
 	flag := false
@@ -84,20 +86,21 @@ func (dlvstr *DeliveryStore) UpdateDeliveryInfo(ctx context.Context, updateInfo 
 		break
 	}
 	if !flag {
-		return errors.New("user ID does not belong to a delivery boy")
+		return internal.ErrDeliveryBoyIdNotExists
 	}
 
 	// Fetch the current status of the delivery
 	currentStatus, err := dlvstr.getCurrentStatus(updateInfo.ID)
 	if err != nil {
-		return errors.New("failed to fetch current delivery status")
+		return internal.ErrInvalidDeliveryId
 	}
 
 	// Check if the delivery status is transitioning to "pickup"
 	if updateInfo.Status == "pickup" {
 		// If the current status is not "preparing", return an error
 		if currentStatus != "preparing" {
-			return errors.New("cannot transition to 'pickup' from current status")
+			// return errors.New("cannot transition to 'pickup' from current status")
+			return internal.ErrInvalidDeliveryStatusToPickup
 		}
 	}
 
@@ -105,7 +108,8 @@ func (dlvstr *DeliveryStore) UpdateDeliveryInfo(ctx context.Context, updateInfo 
 	if updateInfo.Status == "delivered" {
 		// If the current status is not "pickup", return an error
 		if currentStatus != "pickup" {
-			return errors.New("cannot transition to 'delivered' from current status")
+			// return errors.New("cannot transition to 'delivered' from current status")
+			return internal.ErrInvalidDeliveryStatusToDelivered
 		}
 
 		// Update end time to current time
@@ -115,7 +119,7 @@ func (dlvstr *DeliveryStore) UpdateDeliveryInfo(ctx context.Context, updateInfo 
 		statement, err := dlvstr.BaseRepsitory.DB.Prepare(query)
 		if err != nil {
 			log.Println("error occurred in updating delivery db: " + err.Error())
-			return errors.New("failed to prepare delivery update statement")
+			return errors.New("failed to prepare delivery update statement"+err.Error())
 		}
 		defer statement.Close()
 
@@ -180,6 +184,10 @@ func (dlvstr *DeliveryStore) GetDeliveryByID(ctx context.Context, userID int, de
 		return delivery, errors.New("failed to fetch user role")
 	}
 
+	if !dlvstr.deliveryIDExists(deliveryID) {
+		return delivery, internal.ErrOrderIdNotExists
+	}
+
 	switch userRole {
 	case "admin":
 		// Admin gets all delivery info by ID
@@ -221,6 +229,16 @@ func (dlvstr *DeliveryStore) GetDeliveryByID(ctx context.Context, userID int, de
 	return delivery, nil
 }
 
+func (dlvstr *DeliveryStore) deliveryIDExists(deliveryID int) bool {
+	query := "SELECT COUNT(*) FROM delivery WHERE id = ?"
+	var count int
+	err := dlvstr.BaseRepsitory.DB.QueryRow(query, deliveryID).Scan(&count)
+	if err != nil {
+		log.Println("Error checking if delivery ID exists:", err)
+		return false
+	}
+	return count > 0
+}
 // Helper function to get user role
 func (dlvstr *DeliveryStore) getUserRole(userID int) (string, error) {
 	var userRole string

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/SamnitPatil9882/foodOrderingSystem/internal"
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/pkg/dto"
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/repository"
 )
@@ -21,6 +22,7 @@ func NewOrderRepo(db *sql.DB) repository.OrderStorer {
 }
 
 func (ordStr *OrderStore) GetListOfOrder(ctx context.Context, userID int, role string) ([]dto.Order, error) {
+	fmt.Println("getlistoforder", userID, role);
 	ordList := make([]dto.Order, 0)
 	var query string
 	if role == "customer" {
@@ -31,6 +33,7 @@ func (ordStr *OrderStore) GetListOfOrder(ctx context.Context, userID int, role s
 		JOIN delivery AS d ON o.id = d.order_id
 		WHERE d.deliveryboy_id = %d`, userID)
 	} else {
+		fmt.Printf("admin orders get")
 		query = "SELECT * FROM `order` "
 	}
 	rows, err := ordStr.BaseRepsitory.DB.Query(query)
@@ -53,8 +56,16 @@ func (ordStr *OrderStore) GetListOfOrder(ctx context.Context, userID int, role s
 func (ordStr *OrderStore) GetOrderByID(ctx context.Context, orderID int, userID int, role string) (dto.Order, error) {
 	ord := dto.Order{}
 	var query string
+
+	orderExists, err := ordStr.orderExists(orderID, userID, role)
+	if err != nil {
+		return ord, err
+	}
+	if !orderExists {
+		return ord, internal.ErrOrderIdNotExists;
+	}
 	if role == "customer" {
-		query = fmt.Sprintf("Select * FROM  `order` WHERE id = %d AND user_id = %d", orderID, userID)
+		query = fmt.Sprintf("SELECT * FROM `order` WHERE id = %d AND user_id = %d", orderID, userID)
 	} else if role == "deliveryboy" {
 		query = fmt.Sprintf(`SELECT o.id, o.user_id, o.created_at, o.total_amount, o.location
 		FROM "order" o
@@ -63,22 +74,38 @@ func (ordStr *OrderStore) GetOrderByID(ctx context.Context, orderID int, userID 
 	} else {
 		query = fmt.Sprintf("SELECT * FROM `order` WHERE id = %d", orderID)
 	}
-	rows, err := ordStr.BaseRepsitory.DB.Query(query)
+	rows, err := ordStr.BaseRepsitory.DB.QueryContext(ctx, query)
 	if err != nil {
 		log.Printf("Error querying order by ID: %v", err)
 		return ord, err
 	}
 	defer rows.Close()
-	for rows.Next() {
-		err := rows.Scan(&ord.ID, &ord.UserID, &ord.CreatedAt, &ord.TotalAmout, &ord.Location)
-		if err != nil {
-			return dto.Order{}, fmt.Errorf("failed to scan order by ID: %w", err)
-		}
+
+	// Check if any rows were returned
+	if !rows.Next() {
+		return ord, internal.ErrOrderNotFound
 	}
+
+	// Scan the result
+	err = rows.Scan(&ord.ID, &ord.UserID, &ord.CreatedAt, &ord.TotalAmout, &ord.Location)
+	if err != nil {
+		log.Printf("Failed to scan order by ID: %v", err)
+		return ord, fmt.Errorf("failed to scan order by ID: %w", err)
+	}
+
 	return ord, nil
 }
 
 func (ordStr *OrderStore) GetOrderItemsByOrderID(ctx context.Context, orderID int, role string, userID int) ([]dto.CartItem, error) {
+	// Check if the order with the specified ID exists
+	orderExists, err := ordStr.orderExists(orderID, userID, role)
+	if err != nil {
+		return nil, err
+	}
+	if !orderExists {
+		return nil, internal.ErrOrderIdNotExists;
+	}
+
 	var query string
 	if role == "customer" {
 		query = `SELECT oi.id AS orderitem_id, f.name AS foodname, f.price, oi.quantity
@@ -107,7 +134,7 @@ func (ordStr *OrderStore) GetOrderItemsByOrderID(ctx context.Context, orderID in
 	rows, err := ordStr.BaseRepsitory.DB.Query(query, orderID, userID)
 	if err != nil {
 		log.Printf("Error querying order items: %v", err)
-		return []dto.CartItem{}, err
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -116,10 +143,32 @@ func (ordStr *OrderStore) GetOrderItemsByOrderID(ctx context.Context, orderID in
 		var oi dto.CartItem
 		if err := rows.Scan(&oi.ID, &oi.FoodName, &oi.Price, &oi.Quantity); err != nil {
 			log.Printf("Error scanning order item: %v", err)
-			return []dto.CartItem{}, err
+			return nil, err
 		}
 		oi.Price = oi.Price * oi.Quantity
 		orderItems = append(orderItems, oi)
 	}
 	return orderItems, nil
+}
+
+// Helper function to check if the order exists
+func (ordStr *OrderStore) orderExists(orderID int, userID int, role string) (bool, error) {
+	var count int
+	var query string
+	if role == "customer" {
+		query = "SELECT COUNT(*) FROM `order` WHERE id = ? AND user_id = ?"
+	} else if role == "deliveryboy" {
+		query = `SELECT COUNT(*)
+		FROM "order" o
+		JOIN delivery d ON o.id = d.order_id
+		WHERE d.deliveryboy_id = ? AND o.id = ?`
+	} else {
+		query = "SELECT COUNT(*) FROM `order` WHERE id = ?"
+	}
+
+	err := ordStr.BaseRepsitory.DB.QueryRow(query, orderID, userID).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }

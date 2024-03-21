@@ -106,7 +106,7 @@ func RequireAuth(next http.Handler, roles []string) http.Handler {
 			return
 		}
 
-		tokenString = strings.Replace(tokenString, "Bearer", "", 1)
+		tokenString = strings.Replace(tokenString, "Bearer ", "", 1)
 
 		// Parse and validate JWT token
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {

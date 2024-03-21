@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/SamnitPatil9882/foodOrderingSystem/internal"
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/pkg/dto"
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/repository"
 )
@@ -106,6 +107,9 @@ func (invst *InvoiceStore) CreateInvoice(ctx context.Context, invoiceInfo dto.In
 
 func (invst *InvoiceStore) GetInvoiceByOrderID(ctx context.Context, orderId int, userId int, role string) (dto.Invoice, error) {
 	inv := dto.Invoice{}
+	if !invst.invoiceIDExists(orderId) {
+		return inv, internal.ErrOrderIdNotExists
+	}
 	var query string
 	if role == "customer" {
 		query = fmt.Sprintf(`SELECT i.id, i.order_id, i.payment_method, i.created_at
@@ -132,4 +136,14 @@ func (invst *InvoiceStore) GetInvoiceByOrderID(ctx context.Context, orderId int,
 		return inv, nil
 	}
 	return inv, errors.New("order ID not found")
+}
+func (invst *InvoiceStore) invoiceIDExists(invoiceID int) bool {
+	query := "SELECT COUNT(*) FROM invoice WHERE id = ?"
+	var count int
+	err := invst.BaseRepsitory.DB.QueryRow(query, invoiceID).Scan(&count)
+	if err != nil {
+		log.Println("Error checking if delivery ID exists:", err)
+		return false
+	}
+	return count > 0
 }
