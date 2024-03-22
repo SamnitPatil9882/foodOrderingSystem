@@ -59,12 +59,14 @@ const (
 	ErrInvalidDeliveryStatusToPickup    = CustomError("err:cannot transition to 'pickup' from current status")
 	ErrInvalidDeliveryStatusToDelivered = CustomError("err:cannot transition to 'delivered' from current status")
 	ErrInvalidDeliveryId                = CustomError("err:delivery id is not a valid delivery")
+	ErrCartIsEmpty = CustomError("err:cart is empty")
+	ErrCartOrderItemIdNotFound = CustomError("err:cart order item id is not found")
 )
 
 
 func GetHTTPStatusCode(err error) int {
 	switch err {
-	case ErrCategoryNotFound:
+	case ErrCategoryNotFound,ErrCartOrderItemIdNotFound,ErrCartIsEmpty:
 		return http.StatusNotFound
 	case ErrFailedToFetchCategories, ErrFailedToFetchCategory, ErrFailedToInsertCategory,
 		ErrFailedToUpdateCategory, ErrNoRowsAffected, ErrPrepareDeliveryUpdateStmt,

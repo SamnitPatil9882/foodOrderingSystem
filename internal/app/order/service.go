@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 
+	"github.com/SamnitPatil9882/foodOrderingSystem/internal"
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/app/food"
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/pkg/dto"
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/repository"
@@ -52,7 +53,7 @@ func (ods *service) AddOrderItem(ctx context.Context, orderItemId int, quantity 
 	}
 	fd, err := ods.foodService.GetFoodByID(ctx, orderItemId)
 	if err != nil {
-		return errors.New("food id not matched: " + err.Error())
+		return err
 	}
 
 	ods.Cart = append(ods.Cart, dto.CartItem{ID: orderItemId, Quantity: quantity, FoodName: fd.Name, Price: quantity * int(fd.Price)})
@@ -67,7 +68,7 @@ func (ods *service) GetOrderList(ctx context.Context) []dto.CartItem {
 
 func (ods *service) RemoveOrderItem(ctx context.Context, id int) ([]dto.CartItem, error) {
 	if len(ods.Cart) == 0 {
-		return []dto.CartItem{}, errors.New("cart is empty")
+		return []dto.CartItem{}, internal.ErrCartIsEmpty
 	}
 	flg := isIDPresent(ods.Cart, id, 1)
 	if !flg {
@@ -79,7 +80,7 @@ func (ods *service) RemoveOrderItem(ctx context.Context, id int) ([]dto.CartItem
 }
 func (ods *service) CreateInvoice(ctx context.Context, invoiceInfo dto.InvoiceCreation) (dto.Invoice, error) {
 	if len(ods.Cart) == 0 {
-		return dto.Invoice{}, errors.New("cart is empty")
+		return dto.Invoice{}, internal.ErrCartIsEmpty
 	}
 	invoiceInfo.CartItem = ods.Cart
 
@@ -151,5 +152,5 @@ func removeItemFromCart(cart []dto.CartItem, idToRemove int) ([]dto.CartItem, er
 		}
 	}
 
-	return cart, errors.New("id not found")
+	return cart, internal.ErrCartOrderItemIdNotFound
 }
