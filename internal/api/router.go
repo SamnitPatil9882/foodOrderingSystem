@@ -33,7 +33,9 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 	r.HandleFunc("/user/login", LoginHandler(deps.UserService)).Methods(http.MethodPost)
 	r.Handle("/users", middleware.RequireAuth(GetUsersHandler(deps.UserService), []string{"admin"})).Methods(http.MethodGet)
 	// r.HandleFunc("/users", GetUsersHandler(deps.UserService)).Methods(http.MethodGet)
+	r.Handle("/user/me", middleware.RequireAuth(GetSelfHandler(deps.UserService), []string{"customer", "deliveryboy", "admin"})).Methods(http.MethodGet)
 	r.Handle("/user/{id}", middleware.RequireAuth(GetUserHandler(deps.UserService), []string{"admin"})).Methods(http.MethodGet)
+
 	r.Handle("/user/update", middleware.RequireAuth(UpdateUserHandler(deps.UserService), []string{"customer", "deliveryboy", "admin"})).Methods(http.MethodPut)
 
 	// router.Handle("/admin/signup", middleware.RequireAuth(createUserHandler(deps.UserService), []string{"super_admin", "admin"})).Methods("POST")

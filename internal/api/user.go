@@ -114,6 +114,8 @@ func GetUsersHandler(userSvc user.Service) http.HandlerFunc {
 
 	}
 }
+
+
 func GetUserHandler(userSvc user.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var id int
@@ -121,7 +123,7 @@ func GetUserHandler(userSvc user.Service) http.HandlerFunc {
 		id, err := strconv.Atoi(params["id"])
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			log.Println("error occured in parsing int in GetFoodListByCategory: " + err.Error())
+			log.Println("error occured in parsing int in GetUserHandler: " + err.Error())
 			errResp := dto.ErrorResponse{Error: http.StatusBadRequest, Description: internal.InvalidID}
 			json.NewEncoder(w).Encode(errResp)
 			return
@@ -145,6 +147,34 @@ func GetUserHandler(userSvc user.Service) http.HandlerFunc {
 
 	}
 }
+
+
+//get self
+func GetSelfHandler(userSvc user.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// var id int
+		// params := mux.Vars(r)
+		id := getUserID(r)
+		if id <= 0 {
+			w.WriteHeader(http.StatusBadRequest)
+			errResp := dto.ErrorResponse{Error: http.StatusBadRequest, Description: internal.InvalidID}
+			json.NewEncoder(w).Encode(errResp)
+			return
+		}
+		ctx := r.Context()
+		respones, err := userSvc.GetUser(ctx, id)
+		if err != nil {
+			log.Println("error occured in Getting user list in handler: " + err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			errResp := dto.ErrorResponse{Error: http.StatusInternalServerError, Description: err.Error()}
+			json.NewEncoder(w).Encode(errResp)
+			return
+		}
+		json.NewEncoder(w).Encode(respones)
+
+	}
+}
+
 
 func UpdateUserHandler(userSvc user.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

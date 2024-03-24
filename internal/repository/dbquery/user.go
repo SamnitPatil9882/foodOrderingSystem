@@ -182,3 +182,4 @@ func (us *UserStore) UpdateUser(ctx context.Context, updateInfo dto.UpdateUserIn
 	}
 	return userInfo, nil
 }
+
