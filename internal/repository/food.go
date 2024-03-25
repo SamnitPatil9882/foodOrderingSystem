@@ -16,10 +16,12 @@ type FoodStorer interface {
 }
 
 type Food struct {
-	ID         int64
-	CategoryID int64
-	Price      int64
-	Name       string
-	IsVeg      int
-	IsAvail    int
+	ID          int64
+	CategoryID  int64
+	Price       int64
+	Name        string
+	IsVeg       int
+	IsAvail     int
+	ImgUrl      string
+	Description string
 }
