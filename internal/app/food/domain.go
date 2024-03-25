@@ -14,5 +14,7 @@ func MapRepoObjectToDto(repoObj repository.Food) dto.Food {
 		Name:       repoObj.Name,
 		IsVeg:      repoObj.IsVeg,
 		IsAvail:    repoObj.IsAvail,
+		ImgUrl:     repoObj.ImgUrl,
+		Description: repoObj.Description,
 	}
 }

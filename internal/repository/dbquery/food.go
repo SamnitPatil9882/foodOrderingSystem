@@ -32,7 +32,7 @@ func (fds *FoodStore) GetListOfOrder(ctx context.Context) ([]repository.Food, er
 	defer rows.Close()
 	for rows.Next() {
 		food := repository.Food{}
-		if err := rows.Scan(&food.ID, &food.CategoryID, &food.Price, &food.Name, &food.IsVeg, &food.IsAvail); err != nil {
+		if err := rows.Scan(&food.ID, &food.CategoryID, &food.Price,&food.Description,&food.ImgUrl, &food.Name, &food.IsVeg, &food.IsAvail); err != nil {
 			return foodList, fmt.Errorf("failed to scan food row: %v", err)
 		}
 		foodList = append(foodList, food)
