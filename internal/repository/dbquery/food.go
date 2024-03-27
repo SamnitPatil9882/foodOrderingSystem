@@ -206,7 +206,7 @@ func (fds *FoodStore) GetFoodByID(ctx context.Context, foodID int64) (repository
 	}
 
 	query := fmt.Sprintf(`
-        SELECT f.id, f.category_id, f.price, f.name, f.is_veg, f.is_avail,f.description, f.imgurl
+        SELECT f.id, f.category_id, f.price, f.name,f.description, f.imgurl, f.is_veg, f.is_avail
         FROM food f
         JOIN category c ON f.category_id = c.id
         WHERE f.id = %d AND c.is_active = 1 AND f.is_avail = 1
