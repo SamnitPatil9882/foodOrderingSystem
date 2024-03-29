@@ -108,11 +108,19 @@ func (ordStr *OrderStore) GetOrderItemsByOrderID(ctx context.Context, orderID in
 
 	var query string
 	if role == "customer" {
+
+		fmt.Println("customer: orderitem: ",orderID," ",role," ",userID)
 		query = `SELECT oi.id AS orderitem_id, f.name AS foodname, f.price, oi.quantity
 		FROM orderItem oi
 		JOIN food f ON oi.food_id = f.id
 		JOIN "order" o ON oi.order_id = o.id
-		WHERE o.user_id = ? AND oi.order_id = ?;`
+		WHERE  oi.order_id = ? AND o.user_id = ?;`
+		// query = `SELECT oi.id AS orderitem_id,  f.name AS foodname, f.price,oi.quantity
+        //   FROM orderItem oi
+        //   JOIN food f ON oi.food_id = f.id
+        //   JOIN "order" o ON oi.order_id = o.id
+        //   WHERE o.id = ? AND o.user_id = ?`
+		
 	} else if role == "deliveryboy" {
 		query = `
 		SELECT oi.id AS orderitem_id, f.name AS food_name, f.price AS food_price, oi.quantity
@@ -148,6 +156,7 @@ func (ordStr *OrderStore) GetOrderItemsByOrderID(ctx context.Context, orderID in
 		oi.Price = oi.Price * oi.Quantity
 		orderItems = append(orderItems, oi)
 	}
+	fmt.Println("order items: ",orderItems)
 	return orderItems, nil
 }
 
