@@ -47,17 +47,27 @@ func validateCreateCategoryReq(createCategory *dto.CategoryCreateRequest) error 
 func validateUpdateCategoryReq(updateCategory *dto.Category) error {
 	if updateCategory.ID <= 0 {
 		return errors.New(internal.InvalidCategoryID)
-	} else if len(updateCategory.Name) < 2 {
-		return errors.New(internal.InvalidCategoryName)
+	} 
+	// else if len(updateCategory.Name) < 2 {
+	// 	return errors.New(internal.InvalidCategoryName)
+	// }
+	if updateCategory.Name != ""{
+		if len(updateCategory.Name) < 2 {
+			return errors.New(internal.InvalidCategoryName)
+		}
+		updateCategory.Name = cases.Title(language.Und, cases.NoLower).String(updateCategory.Name)
 	}
-	updateCategory.Name = cases.Title(language.Und, cases.NoLower).String(updateCategory.Name)
 	// updateCategory.Description = cases.Title(language.Und, cases.NoLower).String(updateCategory.Description)
-	if updateCategory.IsActive < 0 {
-		updateCategory.IsActive = 0
-	} else if updateCategory.IsActive > 1 {
-		updateCategory.IsActive = 1
-	} else if updateCategory.IsActive != 0 && updateCategory.IsActive != 1 {
-		updateCategory.IsActive = 1
+	// if updateCategory.IsActive < 0 {
+	// 	updateCategory.IsActive = 0
+	// } else if updateCategory.IsActive > 1 {
+	// 	updateCategory.IsActive = 1
+	// } else if updateCategory.IsActive != 0 && updateCategory.IsActive != 1 {
+	// 	updateCategory.IsActive = 1
+	// }
+
+	if !(updateCategory.IsActive == 0 || updateCategory.IsActive == 1 || updateCategory.IsActive ==2){
+		return errors.New(internal.InvalidCategoryIsActive)
 	}
 	return nil
 }

@@ -121,6 +121,51 @@ func (cts *categoryStore) CreateCategory(ctx context.Context, category dto.Categ
 	return ctgry, nil
 }
 
+// func (cts *categoryStore) UpdateCategory(ctx context.Context, category dto.Category) (dto.Category, error) {
+// 	// Check if the category ID exists
+// 	if !cts.categoryExists(category.ID) {
+// 		log.Println("category with ID:", category.ID, "does not exist")
+// 		return category, internal.ErrCategoryNotFound
+// 	}
+
+// 	// Check if the updated name already exists
+	// if cts.categoryNameExists(category.ID, category.Name) {
+	// 	log.Println("category with name:", category.Name, "already exists")
+	// 	return category, internal.ErrCategoryNameExists
+	// }
+
+// 	// Prepare the update statement
+// 	query := "UPDATE category SET name = ?, description = ?, is_active = ? WHERE id = ?"
+// 	statement, err := cts.BaseRepsitory.DB.Prepare(query)
+// 	if err != nil {
+// 		log.Println("error occurred in preparing the update statement:", err.Error())
+// 		return category, internal.ErrFailedToUpdateCategory
+// 	}
+// 	defer statement.Close()
+
+// 	// Execute the update statement
+// 	res, err := statement.Exec(category.Name, category.Description, category.IsActive, category.ID)
+// 	if err != nil {
+// 		log.Println("error occurred in executing the update statement:", err.Error())
+// 		return category, internal.ErrFailedToUpdateCategory
+// 	}
+
+// 	// Check if any rows were affected
+// 	noOfRowsAffected, err := res.RowsAffected()
+// 	if err != nil {
+// 		log.Println("error occurred in fetching the number of affected rows:", err.Error())
+// 		return category, internal.ErrFailedToUpdateCategory
+// 	}
+
+// 	// If no rows were affected, return an error
+// 	if noOfRowsAffected == 0 {
+// 		log.Println("no rows were affected by the update operation")
+// 		return category, internal.ErrCategoryNotFound
+// 	}
+
+// 	return category, nil
+// }
+
 func (cts *categoryStore) UpdateCategory(ctx context.Context, category dto.Category) (dto.Category, error) {
 	// Check if the category ID exists
 	if !cts.categoryExists(category.ID) {
@@ -128,14 +173,32 @@ func (cts *categoryStore) UpdateCategory(ctx context.Context, category dto.Categ
 		return category, internal.ErrCategoryNotFound
 	}
 
-	// Check if the updated name already exists
-	if cts.categoryNameExists(category.ID, category.Name) {
-		log.Println("category with name:", category.Name, "already exists")
-		return category, internal.ErrCategoryNameExists
-	}
 
 	// Prepare the update statement
-	query := "UPDATE category SET name = ?, description = ?, is_active = ? WHERE id = ?"
+	var updateFields []string
+	var updateValues []interface{}
+
+	if category.Name != "" {
+		if cts.categoryNameExists(category.ID, category.Name) {
+			log.Println("category with name:", category.Name, "already exists")
+			return category, internal.ErrCategoryNameExists
+		}
+		updateFields = append(updateFields, "name = ?")
+		updateValues = append(updateValues, category.Name)
+	}
+
+	if category.Description != "" {
+		updateFields = append(updateFields, "description = ?")
+		updateValues = append(updateValues, category.Description)
+	}
+
+	// Check if IsActive is provided (not nil)
+	if category.IsActive == 0 || category.IsActive == 1 {
+		updateFields = append(updateFields, "is_active = ?")
+		updateValues = append(updateValues, category.IsActive)
+	}
+
+	query := fmt.Sprintf("UPDATE category SET %s WHERE id = ?", strings.Join(updateFields, ", "))
 	statement, err := cts.BaseRepsitory.DB.Prepare(query)
 	if err != nil {
 		log.Println("error occurred in preparing the update statement:", err.Error())
@@ -143,8 +206,11 @@ func (cts *categoryStore) UpdateCategory(ctx context.Context, category dto.Categ
 	}
 	defer statement.Close()
 
+	// Append the category ID to the update values slice
+	updateValues = append(updateValues, category.ID)
+
 	// Execute the update statement
-	res, err := statement.Exec(category.Name, category.Description, category.IsActive, category.ID)
+	res, err := statement.Exec(updateValues...)
 	if err != nil {
 		log.Println("error occurred in executing the update statement:", err.Error())
 		return category, internal.ErrFailedToUpdateCategory
@@ -165,6 +231,7 @@ func (cts *categoryStore) UpdateCategory(ctx context.Context, category dto.Categ
 
 	return category, nil
 }
+
 
 // Function to check if the category with the specified ID exists
 func (cts *categoryStore) categoryExists(categoryID int) bool {

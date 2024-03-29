@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -119,8 +120,8 @@ func UpdateCategoryHandler(categorySvc category.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		category := dto.Category{}
-		err := json.NewDecoder(r.Body).Decode(&category)
+		categoryUpdateReq := dto.CategoryUpdate{}
+		err := json.NewDecoder(r.Body).Decode(&categoryUpdateReq)
 		if err != nil {
 			log.Println("error in request")
 			w.WriteHeader(http.StatusBadRequest)
@@ -128,6 +129,16 @@ func UpdateCategoryHandler(categorySvc category.Service) http.HandlerFunc {
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}
+		category := dto.Category{}
+		category.ID = categoryUpdateReq.ID
+		category.Name = categoryUpdateReq.Name
+		category.Description = categoryUpdateReq.Description
+		if categoryUpdateReq.IsActive != nil {
+			category.IsActive = *categoryUpdateReq.IsActive
+		} else {
+			category.IsActive = 2
+		}
+		fmt.Println("category update: ",category)
 		err = validateUpdateCategoryReq(&category)
 		if err != nil {
 			log.Println("error in create category request")

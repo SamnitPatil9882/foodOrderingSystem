@@ -9,9 +9,6 @@ import (
 )
 
 func NewRouter(deps app.Dependencies) *mux.Router {
-
-
-	
 	
 	r := mux.NewRouter()
 	// handler:= c.Handler(mux)
