@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -131,7 +132,7 @@ func UpdateFoodItemHandler(foodSvc food.Service) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		var req dto.Food
+		var req dto.FoodUpdate
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
 			log.Println(err.Error())
@@ -142,14 +143,46 @@ func UpdateFoodItemHandler(foodSvc food.Service) http.HandlerFunc {
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}
-		err = validateUpdateFoodReq(&req)
+		food := dto.Food{};
+
+		if(req.CategoryID != nil){
+			food.CategoryID = *req.CategoryID
+		}else{
+			food.CategoryID = -1
+		}
+
+		if(req.Price != nil) {
+			food.Price = *req.Price
+		}else{
+			food.Price = -1
+		}
+
+		if(req.IsAvail != nil){
+			food.IsAvail = *req.IsAvail
+		}else{
+			food.IsAvail = -1
+		}
+
+		if(req.IsVeg != nil){
+			food.IsVeg = *req.IsVeg
+		}else{
+			food.IsVeg = -1
+		}
+
+		food.ID = req.ID
+		food.Name = req.Name
+		food.Description = req.Description
+		food.ImgUrl = req.ImgUrl
+		fmt.Println("req: ",req);
+		fmt.Println("food: ",food)
+		err = validateUpdateFoodReq(&food)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			errResp := dto.ErrorResponse{Error: http.StatusBadRequest, Description: err.Error()}
 			json.NewEncoder(w).Encode(errResp)
 			return
 		}
-		response, err := foodSvc.UpdateFoodItem(ctx, req)
+		response, err := foodSvc.UpdateFoodItem(ctx, food)
 		if err != nil {
 			log.Println("Error in update food Handler: " + err.Error())
 			httpStatusCode := internal.GetHTTPStatusCode(err);

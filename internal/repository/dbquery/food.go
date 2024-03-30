@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal"
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/pkg/dto"
@@ -135,31 +136,114 @@ func (fds *FoodStore) foodNameExists(foodName string) bool {
 	return count > 0
 }
 
+// func (fds *FoodStore) UpdateFood(ctx context.Context, food dto.Food) (repository.Food, error) {
+// 	resFood := repository.Food{}
+
+// 	// Check if the food category exists
+// 	if !fds.categoryExists(int(food.CategoryID)) {
+// 		return resFood, internal.ErrCategoryNotFound
+// 	}
+
+// 	// Check if the food name already exists for other food items except the one being updated
+// 	if fds.foodNameExistsOtherThanCurrent(food.Name, food.ID) {
+// 		return resFood, internal.ErrFoodNameExists
+// 	}
+
+//     query := "UPDATE food SET category_id = ?, price = ?, name = ?, description = ?, imgurl = ?, is_veg = ?, is_avail = ? WHERE id = ?"
+//     statement, err := fds.DB.Prepare(query)
+//     if err != nil {
+//         return resFood, fmt.Errorf("failed to prepare food update: %v", err)
+//     }
+//     defer statement.Close()
+
+// 	res, err := statement.Exec(food.CategoryID,food.Price,food.Name,food.Description,food.ImgUrl,food.IsVeg,food.IsAvail,food.ID)
+// 	if err != nil {
+// 		return resFood, fmt.Errorf("failed to execute food update query: %v", err)
+// 	}
+
+// 	noOfRawAffected, err := res.RowsAffected()
+// 	if err != nil {
+// 		return resFood, fmt.Errorf("failed to get rows affected: %v", err)
+// 	}
+// 	if noOfRawAffected == 0 {
+// 		return resFood, errors.New("no rows affected")
+// 	}
+
+// 	query = fmt.Sprintf("SELECT * FROM food WHERE id=%d", food.ID)
+// 	rows, err := fds.BaseRepsitory.DB.Query(query)
+// 	if err != nil {
+// 		return resFood, fmt.Errorf("failed to fetch food by ID: %v", err)
+// 	}
+// 	defer rows.Close()
+
+// 	for rows.Next() {
+// 		if err := rows.Scan(&resFood.ID, &resFood.CategoryID, &resFood.Price,&resFood.Description,&resFood.ImgUrl ,&resFood.Name, &resFood.IsVeg, &resFood.IsAvail); err != nil {
+// 			return resFood, fmt.Errorf("failed to scan food row: %v", err)
+// 		}
+// 	}
+// 	return resFood, nil
+// }
+
 func (fds *FoodStore) UpdateFood(ctx context.Context, food dto.Food) (repository.Food, error) {
 	resFood := repository.Food{}
 
 	// Check if the food category exists
-	if !fds.categoryExists(int(food.CategoryID)) {
-		return resFood, internal.ErrCategoryNotFound
-	}
+
 
 	// Check if the food name already exists for other food items except the one being updated
-	if fds.foodNameExistsOtherThanCurrent(food.Name, food.ID) {
-		return resFood, internal.ErrFoodNameExists
+
+
+	// Initialize an empty list to hold the column-value pairs for the update query
+	var updates []string
+	var args []interface{}
+
+	// Append each non-zero field to the updates list along with its corresponding argument
+	if food.CategoryID != -1 {
+		if !fds.categoryExists(int(food.CategoryID)) {
+			return resFood, internal.ErrCategoryNotFound
+		}
+		updates = append(updates, "category_id = ?")
+		args = append(args, food.CategoryID)
 	}
+	if food.Price != -1 {
+		updates = append(updates, "price = ?")
+		args = append(args, food.Price)
+	}
+	if food.Name != "" {
+		if fds.foodNameExistsOtherThanCurrent(food.Name, food.ID) {
+			return resFood, internal.ErrFoodNameExists
+		}
+		updates = append(updates, "name = ?")
+		args = append(args, food.Name)
+	}
+	if food.Description != "" {
+		updates = append(updates, "description = ?")
+		args = append(args, food.Description)
+	}
+	if food.ImgUrl != "" {
+		updates = append(updates, "imgurl = ?")
+		args = append(args, food.ImgUrl)
+	}
+	// Similarly, add conditions for other fields as needed
 
-    query := "UPDATE food SET category_id = ?, price = ?, name = ?, description = ?, imgurl = ?, is_veg = ?, is_avail = ? WHERE id = ?"
-    statement, err := fds.DB.Prepare(query)
-    if err != nil {
-        return resFood, fmt.Errorf("failed to prepare food update: %v", err)
-    }
-    defer statement.Close()
+	// Combine all update statements into a single query
+	query := fmt.Sprintf("UPDATE food SET %s WHERE id = ?", strings.Join(updates, ", "))
 
-	res, err := statement.Exec(food.CategoryID,food.Price,food.Name,food.Description,food.ImgUrl,food.IsVeg,food.IsAvail,food.ID)
+	// Prepare the update statement
+	statement, err := fds.DB.Prepare(query)
+	if err != nil {
+		return resFood, fmt.Errorf("failed to prepare food update: %v", err)
+	}
+	defer statement.Close()
+
+	// Execute the update statement with the provided arguments
+	args = append(args, food.ID)
+	res, err := statement.Exec(args...)
 	if err != nil {
 		return resFood, fmt.Errorf("failed to execute food update query: %v", err)
 	}
 
+	// Check the number of affected rows
 	noOfRawAffected, err := res.RowsAffected()
 	if err != nil {
 		return resFood, fmt.Errorf("failed to get rows affected: %v", err)
@@ -168,6 +252,7 @@ func (fds *FoodStore) UpdateFood(ctx context.Context, food dto.Food) (repository
 		return resFood, errors.New("no rows affected")
 	}
 
+	// Fetch the updated food item from the database
 	query = fmt.Sprintf("SELECT * FROM food WHERE id=%d", food.ID)
 	rows, err := fds.BaseRepsitory.DB.Query(query)
 	if err != nil {
@@ -175,13 +260,15 @@ func (fds *FoodStore) UpdateFood(ctx context.Context, food dto.Food) (repository
 	}
 	defer rows.Close()
 
+	// Scan the fetched row into the result struct
 	for rows.Next() {
-		if err := rows.Scan(&resFood.ID, &resFood.CategoryID, &resFood.Price,&resFood.Description,&resFood.ImgUrl ,&resFood.Name, &resFood.IsVeg, &resFood.IsAvail); err != nil {
+		if err := rows.Scan(&resFood.ID, &resFood.CategoryID, &resFood.Price, &resFood.Description, &resFood.ImgUrl, &resFood.Name, &resFood.IsVeg, &resFood.IsAvail); err != nil {
 			return resFood, fmt.Errorf("failed to scan food row: %v", err)
 		}
 	}
 	return resFood, nil
 }
+
 
 // Function to check if the food name already exists for other food items except the one being updated
 func (fds *FoodStore) foodNameExistsOtherThanCurrent(foodName string, foodID int64) bool {
@@ -218,6 +305,7 @@ func (fds *FoodStore) GetFoodByID(ctx context.Context, foodID int64) (repository
 	}
 	defer rows.Close()
 
+	
 	for rows.Next() {
         err := rows.Scan(&food.ID, &food.CategoryID, &food.Price, &food.Name, &food.Description, &food.ImgUrl, &food.IsVeg, &food.IsAvail)
 		if err != nil {
@@ -225,7 +313,7 @@ func (fds *FoodStore) GetFoodByID(ctx context.Context, foodID int64) (repository
 		}
 		return food, nil
 	}
-
+	fmt.Println("food by id: ",food)
 	return food, errors.New("no match found")
 }
 
@@ -258,10 +346,10 @@ func (fds *FoodStore) GetFoodInfoByID(ctx context.Context, foodID int64) (dto.Fo
 	defer rows.Close()
 
 	for rows.Next() {
-        err := rows.Scan(&food.ID, &food.CategoryID, &food.Price, &food.Name, &food.Description, &food.ImgUrl, &food.IsVeg, &food.IsAvail)
-		if err != nil {
+		if err := rows.Scan(&food.ID, &food.CategoryID, &food.Price,&food.Name , &food.Description, &food.ImgUrl, &food.IsVeg, &food.IsAvail); err != nil {
 			return food, fmt.Errorf("failed to scan food row: %v", err)
 		}
+		fmt.Println("food info by id: ",food);
 		return food, nil
 	}
 

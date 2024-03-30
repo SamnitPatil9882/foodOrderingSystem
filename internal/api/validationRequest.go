@@ -104,28 +104,40 @@ func validateUpdateFoodReq(updateFood *dto.Food) error {
 
 	if updateFood.ID <= 0 {
 		return errors.New(internal.InvalidFoodID)
-	} else if updateFood.CategoryID <= 0 {
+	} else if updateFood.CategoryID < -1 {
 		return errors.New(internal.InvalidCategoryID)
-	} else if updateFood.Price <= 0 {
+	} else if updateFood.Price < -1 {
 		return errors.New(internal.InvalidPrice)
-	} else if len(updateFood.Name) < 2 {
-		return errors.New(internal.InvalidFoodName)
+	}
+	if(updateFood.Name != ""){
+		if len(updateFood.Name) < 2 {
+			return errors.New(internal.InvalidFoodName)
+		}
+	}
+	
+	if(updateFood.Description != ""){
+		if len(updateFood.Description) < 2 {
+			return errors.New(internal.InvalidDescription)
+		}
 	}
 
-	if updateFood.IsAvail < 0 {
-		updateFood.IsAvail = 0
-	} else if updateFood.IsAvail > 1 {
-		updateFood.IsAvail = 1
-	} else if updateFood.IsAvail != 0 && updateFood.IsAvail != 1 {
-		updateFood.IsAvail = 1
+	if(updateFood.ImgUrl != ""){
+		if len(updateFood.ImgUrl) < 2 {
+			return errors.New(internal.InvalidImgUrl)
+		}
 	}
 
-	if updateFood.IsVeg < 0 {
-		updateFood.IsVeg = 0
-	} else if updateFood.IsVeg > 1 {
-		updateFood.IsVeg = 1
-	} else if updateFood.IsVeg != 0 && updateFood.IsVeg != 1 {
-		updateFood.IsVeg = 1
+	if(updateFood.CategoryID < -1) {
+		return errors.New(internal.InvalidCategoryID)
+	}
+	if(updateFood.IsAvail != -1 && updateFood.IsAvail != 0 && updateFood.IsAvail != 1) {
+		return errors.New(internal.InvalidIsAvail)
+	}
+	if(updateFood.IsVeg != -1 && updateFood.IsVeg != 0 && updateFood.IsVeg != 1) {
+		return errors.New(internal.InvalidIsVeg)
+	}
+	if(updateFood.Price < -1 ) {
+		return errors.New(internal.InvalidPrice)
 	}
 	return nil
 }

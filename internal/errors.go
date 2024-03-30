@@ -9,31 +9,35 @@ func (e CustomError) Error() string {
 }
 
 var (
-	InternalServerError   = "Internal server error"
-	InvalidCategoryName   = "Invalid category name"
-	InvalidCategoryID     = "Invalid id"
-	InvalidFoodName       = "Invalid food name"
-	InvalidFoodID         = "Invalid food id"
-	InvalidPrice          = "Invalid price"
-	InvalidQuantity       = "Invalid Quantity"
-	InvalidPaymentMethod  = "Invalid Payment Methods"
-	InvalidLocation       = "Invalid Location information"
-	InvalidUserID         = "Invalid User ID"
-	InvalidDeliveryStatus = "Invalid Delivery Stutus"
-	InvalidTimeFormat     = "Invalid Time format"
-	InvalidFirstName      = "Invalid First Name"
-	InvalidLastName       = "Invalid Last Name"
-	InvalidPhoneNumber    = "Invalid Phone number"
-	InvalidRole           = "Invalid Role"
-	InvalidEmail          = "Invalid Email"
-	InvalidPassword       = "Invalid Password"
-	EmptyCart             = "Cart is Empty"
-	Unauthorized          = "login again"
-	InvalidID             = "invalid id"
-	UnauthorizedAccess    = "Unauthorized access"
-	UserAvail             = "User is avail"
-	InvalidCredentials    = "eneter valid credentials"
+	InternalServerError     = "Internal server error"
+	InvalidCategoryName     = "Invalid category name"
+	InvalidCategoryID       = "Invalid id"
+	InvalidFoodName         = "Invalid food name"
+	InvalidFoodID           = "Invalid food id"
+	InvalidPrice            = "Invalid price"
+	InvalidQuantity         = "Invalid Quantity"
+	InvalidPaymentMethod    = "Invalid Payment Methods"
+	InvalidLocation         = "Invalid Location information"
+	InvalidUserID           = "Invalid User ID"
+	InvalidDeliveryStatus   = "Invalid Delivery Stutus"
+	InvalidTimeFormat       = "Invalid Time format"
+	InvalidFirstName        = "Invalid First Name"
+	InvalidLastName         = "Invalid Last Name"
+	InvalidPhoneNumber      = "Invalid Phone number"
+	InvalidRole             = "Invalid Role"
+	InvalidEmail            = "Invalid Email"
+	InvalidPassword         = "Invalid Password"
+	EmptyCart               = "Cart is Empty"
+	Unauthorized            = "login again"
+	InvalidID               = "invalid id"
+	UnauthorizedAccess      = "Unauthorized access"
+	UserAvail               = "User is avail"
+	InvalidCredentials      = "eneter valid credentials"
 	InvalidCategoryIsActive = "Invalid category is active"
+	InvalidIsAvail          = "Invalid isavail"
+	InvalidIsVeg            = "Invalid isveg"
+	InvalidDescription      = "Invalid description"
+	InvalidImgUrl           = "Invalid imgurl"
 )
 
 const (
@@ -60,14 +64,13 @@ const (
 	ErrInvalidDeliveryStatusToPickup    = CustomError("err:cannot transition to 'pickup' from current status")
 	ErrInvalidDeliveryStatusToDelivered = CustomError("err:cannot transition to 'delivered' from current status")
 	ErrInvalidDeliveryId                = CustomError("err:delivery id is not a valid delivery")
-	ErrCartIsEmpty = CustomError("err:cart is empty")
-	ErrCartOrderItemIdNotFound = CustomError("err:cart order item id is not found")
+	ErrCartIsEmpty                      = CustomError("err:cart is empty")
+	ErrCartOrderItemIdNotFound          = CustomError("err:cart order item id is not found")
 )
-
 
 func GetHTTPStatusCode(err error) int {
 	switch err {
-	case ErrCategoryNotFound,ErrCartOrderItemIdNotFound,ErrCartIsEmpty:
+	case ErrCategoryNotFound, ErrCartOrderItemIdNotFound, ErrCartIsEmpty:
 		return http.StatusNotFound
 	case ErrFailedToFetchCategories, ErrFailedToFetchCategory, ErrFailedToInsertCategory,
 		ErrFailedToUpdateCategory, ErrNoRowsAffected, ErrPrepareDeliveryUpdateStmt,
