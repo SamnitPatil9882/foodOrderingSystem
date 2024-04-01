@@ -36,7 +36,6 @@ func validateCreateCategoryReq(createCategory *dto.CategoryCreateRequest) error 
 		return errors.New(internal.InvalidCategoryName)
 	}
 	createCategory.Name = cases.Title(language.Und, cases.NoLower).String(createCategory.Name)
-	// createCategory.Description = cases.Title(language.Und, cases.NoLower).String(createCategory.Description)
 	if createCategory.IsActive < 0 {
 		createCategory.IsActive = 0
 	} else if createCategory.IsActive > 1 {
@@ -113,6 +112,7 @@ func validateUpdateFoodReq(updateFood *dto.Food) error {
 		if len(updateFood.Name) < 2 {
 			return errors.New(internal.InvalidFoodName)
 		}
+		updateFood.Name = cases.Title(language.Und, cases.NoLower).String(updateFood.Name)
 	}
 	
 	if(updateFood.Description != ""){
