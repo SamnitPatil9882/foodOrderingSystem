@@ -72,7 +72,7 @@ func validateUpdateCategoryReq(updateCategory *dto.Category) error {
 }
 
 func validateFoodCreateReq(createFood *dto.FoodCreateRequest) error {
-	if createFood.CategoryID <= 0 || createFood.Price <= 0 {
+	if createFood.CategoryID <= 0 || createFood.Price < 0 {
 		return errors.New(internal.InvalidCategoryID)
 	} else if len(createFood.Name) <= 2 {
 		return errors.New(internal.InvalidFoodName)

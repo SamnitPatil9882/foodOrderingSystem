@@ -29,7 +29,7 @@ func InitializeDatabase() (*sql.DB, error) {
 		return database, err
 	}
 	statement.Exec()
-	seedCategoryData()
+	// seedCategoryData()
 	query = "CREATE TABLE IF NOT EXISTS food  (id INTEGER PRIMARY KEY AUTOINCREMENT,category_id VARCHAR(100) NOT NULL,price INTEGER NOT NULL,name VARCHAR(100) NOT NULL UNIQUE,description VARCHAR(255),imgurl VARCHAR(255),is_veg INTEGER NOT NULL DEFAULT 1,is_avail INTEGER NOT NULL DEFAULT 1,FOREIGN KEY (category_id) REFERENCES category(id))"
 	statement, err = database.Prepare(query)
 	if err != nil {
@@ -37,7 +37,7 @@ func InitializeDatabase() (*sql.DB, error) {
 		return database, err
 	}
 	statement.Exec()
-	seedFoodData()
+	// seedFoodData()
 	query = "CREATE TABLE IF NOT EXISTS user  (id INTEGER PRIMARY KEY AUTOINCREMENT,phone VARCHAR(15) UNIQUE NOT NULL,email VARCHAR(255) UNIQUE NOT NULL,password VARCHAR(1000) NOT NULL,firstname VARCHAR(100) NOT NULL,lastname VARCHAR(100) NOT NULL,role VARCHAR(20) DEFAULT 'customer' CHECK(role IN ('customer','admin','deliveryboy')))"
 	statement, err = database.Prepare(query)
 	if err != nil {

@@ -11,7 +11,7 @@ func (e CustomError) Error() string {
 var (
 	InternalServerError     = "Internal server error"
 	InvalidCategoryName     = "Invalid category name"
-	InvalidCategoryID       = "Invalid id"
+	InvalidCategoryID       = "Invalid category id"
 	InvalidFoodName         = "Invalid food name"
 	InvalidFoodID           = "Invalid food id"
 	InvalidPrice            = "Invalid price"
