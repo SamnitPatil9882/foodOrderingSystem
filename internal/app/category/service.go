@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 
+	"github.com/SamnitPatil9882/foodOrderingSystem/internal"
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/pkg/dto"
 	"github.com/SamnitPatil9882/foodOrderingSystem/internal/repository"
 )
@@ -21,6 +22,7 @@ type Service interface {
 	GetCategory(ctx context.Context, categoryID int64) (dto.Category, error)
 	CreateCategory(ctx context.Context, createCategory dto.CategoryCreateRequest) (dto.Category, error)
 	UpdateCategory(ctx context.Context, updateCategory dto.Category) (dto.Category, error)
+	DelCategory(ctx context.Context, categroyID int64) error
 	// UpdateCategoryStatus(ctx context.Context, categoryID int, updatedStatus int) (dto.Category, error)
 }
 
@@ -100,3 +102,16 @@ func (cs *service) UpdateCategory(ctx context.Context, updateCategory dto.Catego
 // 	ctgry = MapRepoObjectToDto(categoryDB)
 // 	return ctgry, nil
 // }
+
+
+func (cs *service) DelCategory(ctx context.Context, categroyID int64) error {
+	
+	if categroyID <= 0 {
+		return internal.ErrInvalidCategoryId
+	}
+	 err := cs.categoryRepo.DelCategory(ctx, categroyID)
+	if err != nil {
+		return err
+	}
+	return nil
+}

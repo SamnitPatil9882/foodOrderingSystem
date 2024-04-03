@@ -66,6 +66,9 @@ const (
 	ErrInvalidDeliveryId                = CustomError("delivery id is not a valid delivery")
 	ErrCartIsEmpty                      = CustomError("cart is empty")
 	ErrCartOrderItemIdNotFound          = CustomError("cart order item id is not found")
+	ErrFailedToDeleteCategory           = CustomError("failed to delete category")
+	ErrInvalidCategoryId                = CustomError("invalid category id enter valid category id")
+
 )
 
 func GetHTTPStatusCode(err error) int {

@@ -256,3 +256,27 @@ func (cts *categoryStore) categoryNameExists(categoryID int, updatedName string)
 	}
 	return count > 0
 }
+
+
+func (cts *categoryStore) DelCategory(ctx context.Context, categoryID int64) error {
+	// Construct the SQL query to delete the category by ID
+	query := "DELETE FROM category WHERE id = ?"
+	
+	// Execute the delete query
+	result, err := cts.BaseRepsitory.DB.ExecContext(ctx, query, categoryID)
+	if err != nil {
+		log.Println("error occurred in deleting category:", err)
+		return internal.ErrFailedToDeleteCategory
+	}
+
+	// Check if the category was found and deleted successfully
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		log.Println("Category with ID", categoryID, "not found")
+		return internal.ErrCategoryNotFound
+	}
+
+	// Category deleted successfully
+	log.Println("Category with ID", categoryID, "deleted successfully")
+	return nil
+}

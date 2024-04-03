@@ -13,6 +13,7 @@ type CategoryStorer interface {
 	CreateCategory(ctx context.Context, category dto.CategoryCreateRequest) (Category, error)
 	UpdateCategory(ctx context.Context, category dto.Category) (dto.Category, error)
 	// UpdateCategoryStatus(ctx context.Context,categoryID int64,UpdatedStatus int)(Category, error)
+	DelCategory(ctx context.Context, categoryID int64) error
 }
 
 type Category struct {

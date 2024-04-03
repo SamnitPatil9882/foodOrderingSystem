@@ -17,6 +17,8 @@ func NewRouter(deps app.Dependencies) *mux.Router {
 	r.Handle("/categories/{category_id}", middleware.RequireAuth(GetCategoryHandler(deps.CategoryService), []string{"customer", "deliveryboy", "admin"})).Methods(http.MethodGet)
 	r.Handle("/category", middleware.RequireAuth(CreateCategoryHandler(deps.CategoryService), []string{"admin"})).Methods(http.MethodPost)
 	r.Handle("/category", middleware.RequireAuth(UpdateCategoryHandler(deps.CategoryService), []string{"admin"})).Methods(http.MethodPatch)
+	r.Handle("/category/{category_id}", middleware.RequireAuth(DelCategoryHandler(deps.CategoryService), []string{ "admin"})).Methods(http.MethodDelete)
+
 
 	//food
 	r.Handle("/foods", middleware.RequireAuth(GetFoodListHandler(deps.FoodService), []string{"customer", "deliveryboy", "admin"})).Methods(http.MethodGet)

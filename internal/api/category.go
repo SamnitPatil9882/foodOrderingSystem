@@ -170,3 +170,39 @@ func UpdateCategoryHandler(categorySvc category.Service) http.HandlerFunc {
 // 		response,err :=categorySvc.UpdateCategoryStatus(ctx,id,)
 // 	}
 // }
+
+func DelCategoryHandler(categorySvc category.Service) http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		// ctx := r.Context()
+
+		params := mux.Vars(r)
+		category_id, err := strconv.ParseInt(params["category_id"], 10, 64)
+
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			// http.Error(w, "enter valid data", http.StatusBadRequest)
+			errResp := dto.ErrorResponse{Error: http.StatusBadRequest, Description: "Bad request"}
+			json.NewEncoder(w).Encode(errResp)
+			return
+		}
+
+		if category_id <= 0 {
+			w.WriteHeader(http.StatusBadRequest)
+			errResp := dto.ErrorResponse{Error: http.StatusBadRequest, Description: internal.InvalidCategoryID}
+			json.NewEncoder(w).Encode(errResp)
+			return
+		}
+		err = categorySvc.DelCategory(ctx, category_id)
+		if err != nil {
+			httpStatusCode := internal.GetHTTPStatusCode(err);
+			w.WriteHeader(httpStatusCode)
+			errResp := dto.ErrorResponse{Error: httpStatusCode, Description: err.Error()}
+			json.NewEncoder(w).Encode(errResp)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}
+
+}

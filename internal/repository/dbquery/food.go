@@ -224,6 +224,10 @@ func (fds *FoodStore) UpdateFood(ctx context.Context, food dto.Food) (repository
 		updates = append(updates, "imgurl = ?")
 		args = append(args, food.ImgUrl)
 	}
+	if food.IsAvail != -1 {
+		updates = append(updates, "is_avail = ?")
+		args = append(args, food.IsAvail)
+	}
 	// Similarly, add conditions for other fields as needed
 
 	// Combine all update statements into a single query
